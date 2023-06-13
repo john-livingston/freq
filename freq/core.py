@@ -8,7 +8,7 @@ from .util import get_alias
 from .plot import plot_gls_power, plot_gls_folded
 
 def iterative_gls(x_rv, y_rv, yerr_rv=None, inst_rv=None, n=3, pmin=0.2, pmax=200,
-                  plot=True, highlight=None, labels=None, annotate_color='k'):
+                  plot=True, highlight=None, labels=None, annotate_color='k', fp=None):
 
     if labels is None:
         labels = [f'iteration {i+1}' for i in range(n)]
@@ -47,5 +47,7 @@ def iterative_gls(x_rv, y_rv, yerr_rv=None, inst_rv=None, n=3, pmin=0.2, pmax=20
 
     if plot:
         fig.align_ylabels()
+        if fp is not None:
+            fig.savefig(fp, bbox_inches='tight')
 
     return dict(gls=gls, sinmod=sinmod, t_hr=t_hr, sinmod_hr=sinmod_hr)

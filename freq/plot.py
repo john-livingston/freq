@@ -81,7 +81,8 @@ def plot_gls_folded(gls, ax, yerr=False, inst_rv=None, colors=None,
     ax.yaxis.tick_right()
 
 def plot_gls_timeseries(iterative_gls_res, x_rv, y_rv, yerr_rv, inst_rv=None, markers=None, colors=None,
-               cmap=plt.cm.RdBu_r, x_offset=2457000, labelsdict=None, markercycle="os^pd"):
+               cmap=plt.cm.RdBu_r, x_offset=2457000, labelsdict=None, markercycle="os^pd", fp=None):
+
     fig = plt.figure(figsize=(10,5))
     gs = plt.GridSpec(4, 1)
 
@@ -134,3 +135,6 @@ def plot_gls_timeseries(iterative_gls_res, x_rv, y_rv, yerr_rv, inst_rv=None, ma
         ax.scatter(x_rv-x_offset, y_rv-sinmod, c=x_rv, cmap=plt.cm.RdBu_r, edgecolor='black', linewidth=1)
     ax.axhline(0, color='k', ls=':', alpha=0.5, zorder=-2)
     plt.setp(ax, xlabel=f'BJD $-$ {x_offset}', ylabel='Residuals')
+
+    if fp is not None:
+        fig.savefig(fp, bbox_inches='tight')
