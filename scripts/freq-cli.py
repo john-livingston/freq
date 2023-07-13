@@ -14,19 +14,23 @@ plt.rcParams['figure.dpi'] = 200
 
 parser = argparse.ArgumentParser(description="freq: Frequency analysis of unevenly sampled time series")
 
-parser.add_argument("input", help="Input file name (CSV format with columns: time mnvel errvel tel)")
+parser.add_argument("input", help="Input file name (with columns: time mnvel errvel tel)")
+parser.add_argument("-dw", "--delim_whitespace", help="Delimited by whitespace", action="store_true")
+parser.add_argument("-c", "--columns", help="Column names", nargs='+', default="time mnvel errvel tel".split())
 parser.add_argument("-o", "--outdir", help="output directory", default=".")
 parser.add_argument("-mu", "--max_unc", help="Maximum uncertainty", type=float, default=4)
 parser.add_argument("-sm", "--subtract_median", help="Subtract median", action="store_true")
 parser.add_argument("-n", "--n_iter", help="Number of iterations", type=int, default=1)
 parser.add_argument("--pmin", help="Minimum period", type=float, default=1)
 parser.add_argument("--pmax", help="Maximum period", type=float, default=100)
-parser.add_argument("--highlight", help="Highlight period", type=float, nargs='+', default=[])
+parser.add_argument("-hl", "--highlight", help="Highlight period", type=float, nargs='+', default=[])
 parser.add_argument("--annotate_color", help="Annotate color", type=str, default='k')
 parser.add_argument("-ai", "--activity_indicators", help="Activity indicators", type=str, nargs='+', default=[])
 
 args = parser.parse_args()
 fp = args.input
+delim_whitespace = args.delim_whitespace
+cols = args.columns
 outdir = args.outdir
 max_unc = args.max_unc
 subtract_median = args.subtract_median
@@ -40,16 +44,17 @@ activity_indicators = args.activity_indicators
 if not os.path.exists(outdir):
     os.mkdir(outdir)
 
-df = pd.read_csv(fp)
+df = pd.read_csv(fp, delim_whitespace=delim_whitespace, comment='#')
 
-idx = df.errvel > max_unc
-print(f'dropping {idx.sum()} rv measurements')
+timecol = cols[0]
+errcol = cols[2]
+
+idx = df[errcol] > max_unc
+print(f'dropping {idx.sum()} rv measurements with {errcol} > {max_unc}')
 df = df[~idx]
 
-cols = 'time mnvel errvel'.split()
-x_rv, y_rv, yerr_rv = df[cols].values.T
-inst_rv = df['tel'].values
-x_rv += 2457000
+x_rv, y_rv, yerr_rv = df[cols[:3]].values.T
+inst_rv = df[cols[3]].values
 
 for i,inst in enumerate(ordered_set(inst_rv)):
     ix = inst_rv == inst
@@ -95,15 +100,21 @@ if len(activity_indicators) > 0:
         gls = []
         for i,(ind,ind_name) in enumerate(zip(activity_indicators, activity_indicators)):
             ax = axs[i]
-            cols = f'time {ind} {ind}_err'
-            x, y, yerr = df.loc[ix,cols.split()].values.T
+            if f'{ind}_err' in df.columns:
+                cols = f'{timecol} {ind} {ind}_err'.split()
+                x, y, yerr = df.loc[ix,cols].values.T
+                data = (x,y,yerr)
+                if not np.isfinite(yerr).any() or np.all(yerr == 0):
+                    data = (x,y)
+            else:
+                cols = f'{timecol} {ind}'.split()
+                x, y = df.loc[ix,cols].values.T
+                data = (x,y)
             if not np.isfinite(y).any() or np.all(y == 0):
                 axs[i].remove()
                 gls.append(None)
                 continue
-            if not np.isfinite(yerr).any() or np.all(yerr == 0):
-                yerr = np.ones_like(y)
-            gls.append(Gls((x, y, yerr), Pbeg=pmin, Pend=pmax))
+            gls.append(Gls(data, Pbeg=pmin, Pend=pmax))
             
             plot_gls_power(gls[i], ax, fap_levels=[1e-1,1e-2,1e-3],
                         annotate_text=f'{ind_name}: {gls[i].best["P"] :.1f} days')
