@@ -44,6 +44,9 @@ activity_indicators = args.activity_indicators
 if not os.path.exists(outdir):
     os.mkdir(outdir)
 
+with open(os.path.join(outdir, 'args.txt'), 'w') as w:
+    w.write(" ".join(sys.argv)+'\n')
+
 df = pd.read_csv(fp, delim_whitespace=delim_whitespace, comment='#')
 
 timecol = cols[0]
