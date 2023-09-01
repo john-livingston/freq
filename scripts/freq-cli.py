@@ -100,12 +100,13 @@ if len(activity_indicators) > 0:
         
         nrows = len(activity_indicators)
         fig, axs = plt.subplots(nrows, 1, figsize=(10,1.5*nrows), sharex=True)
+        if nrows == 1: axs = [axs]
         gls = []
         for i,(ind,ind_name) in enumerate(zip(activity_indicators, activity_indicators)):
             ax = axs[i]
             if f'{ind}_err' in df.columns:
                 cols = f'{timecol} {ind} {ind}_err'.split()
-                x, y, yerr = df.loc[ix,cols].values.T
+                x, y, yerr = df.loc[ix,cols].dropna().values.T
                 data = (x,y,yerr)
                 if not np.isfinite(yerr).any() or np.all(yerr == 0):
                     data = (x,y)
