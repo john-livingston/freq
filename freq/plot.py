@@ -4,6 +4,9 @@ from matplotlib.lines import Line2D
 
 from .util import ordered_set
 
+MARKERCYCLE = "osv^pd"
+
+
 def annotate(ax, txt, annotate_loc=1, annotate_color='k', fontsize=12):
     if annotate_loc == 1:
         xy = 0,1
@@ -38,7 +41,7 @@ def plot_gls_power(gls, ax, log=True, fap_levels=None, color='k', lw=0.5, highli
         plt.setp(ax, xscale='log')
 
 def plot_gls_folded(gls, ax, yerr=False, inst_rv=None, colors=None,
-                    cmap=plt.cm.RdBu_r, annotate_color='r', lw=1, markers=None, markercycle="os^pd"):
+                    cmap=plt.cm.RdBu_r, annotate_color='r', lw=1, markers=None, markercycle=MARKERCYCLE):
 
     def phase(t, per, T0, days=False):
         if days:
@@ -81,7 +84,7 @@ def plot_gls_folded(gls, ax, yerr=False, inst_rv=None, colors=None,
     ax.yaxis.tick_right()
 
 def plot_gls_timeseries(iterative_gls_res, x_rv, y_rv, yerr_rv, inst_rv=None, markers=None, colors=None,
-               cmap=plt.cm.RdBu_r, x_offset=2457000, labelsdict=None, markercycle="os^pd", fp=None):
+               cmap=plt.cm.RdBu_r, x_offset=2457000, labelsdict=None, markercycle=MARKERCYCLE, fp=None):
 
     fig = plt.figure(figsize=(10,5))
     gs = plt.GridSpec(4, 1)

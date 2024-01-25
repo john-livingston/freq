@@ -27,9 +27,10 @@ def iterative_gls(x_rv, y_rv, yerr_rv=None, inst_rv=None, n=3, pmin=0.2, pmax=20
     for i in range(n):
 
         gls.append(Gls((x_rv, y_rv-sinmod, yerr_rv), Pbeg=pmin, Pend=pmax))
-        msg = f"P = {gls[i].best['P'] :.4f} +/- {gls[i].best['e_P'] :.4f} days"
+        msg = f"n = {i+1}: P = {gls[i].best['P'] :.4f} +/- {gls[i].best['e_P'] :.4f} days"
         msg += f"; FAP = {gls[i].FAP() :.2e}"
         msg += f"; 1-day alias = {get_alias(gls[i].best['P'], 1.0) :.4f} days"
+        msg += f"; 1-month alias = {get_alias(gls[i].best['P'], 29.5) :.4f} days"
         print(msg)
 
         sinmod += gls[i].sinmod()

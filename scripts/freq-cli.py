@@ -26,6 +26,7 @@ parser.add_argument("--pmax", help="Maximum period", type=float, default=100)
 parser.add_argument("-hl", "--highlight", help="Highlight period", type=float, nargs='+', default=[])
 parser.add_argument("--annotate_color", help="Annotate color", type=str, default='k')
 parser.add_argument("-ai", "--activity_indicators", help="Activity indicators", type=str, nargs='+', default=[])
+parser.add_argument("-i", "--instruments", help="Only analyze these instruments", type=str, nargs='+', default=[])
 
 args = parser.parse_args()
 fp = args.input
@@ -40,6 +41,7 @@ pmax = args.pmax
 highlight = args.highlight
 annotate_color = args.annotate_color
 activity_indicators = args.activity_indicators
+instruments = args.instruments
 
 if not os.path.exists(outdir):
     os.mkdir(outdir)
@@ -48,16 +50,23 @@ with open(os.path.join(outdir, 'args.txt'), 'w') as w:
     w.write(" ".join(sys.argv)+'\n')
 
 df = pd.read_csv(fp, delim_whitespace=delim_whitespace, comment='#')
-
+    
 timecol = cols[0]
 errcol = cols[2]
+instcol = cols[3]
+
+if instruments:
+    ix = np.zeros(df.shape[0], dtype=bool)
+    for inst in instruments:
+        ix |= df[instcol] == inst
+    df = df[ix]
 
 idx = df[errcol] > max_unc
 print(f'dropping {idx.sum()} rv measurements with {errcol} > {max_unc}')
 df = df[~idx]
 
 x_rv, y_rv, yerr_rv = df[cols[:3]].values.T
-inst_rv = df[cols[3]].values
+inst_rv = df[instcol].values
 
 for i,inst in enumerate(ordered_set(inst_rv)):
     ix = inst_rv == inst
