@@ -1,8 +1,7 @@
-import sys
 import numpy as np
 import matplotlib.pyplot as plt
-#sys.path.append("/home/jhl/github/GLS/python/")
-from gls import Gls
+
+from .gls import Gls
 
 from .util import get_alias
 from .plot import plot_gls_power, plot_gls_folded

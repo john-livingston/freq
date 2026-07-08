@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "freq"
+version = "0.1.0"
+description = "Frequency analysis of unevenly sampled RV time series (iterative GLS + l1 periodograms)"
+requires-python = ">=3.10"
+license = {text = "GPL-3.0-or-later"}
+dependencies = ["numpy", "scipy", "pandas", "matplotlib"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.scripts]
+freq = "freq.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["freq*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
