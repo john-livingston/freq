@@ -123,6 +123,10 @@ def main(argv=None):
                                     sharex=True, squeeze=False)
             axs = axs.ravel()
             for i, ind in enumerate(args.activity_indicators):
+                if ind not in sub.columns:
+                    print(f'skipping activity indicator {ind!r}: no such column')
+                    axs[i].remove()
+                    continue
                 errc = f'{ind}_err' if f'{ind}_err' in sub.columns else None
                 cols = [timecol, ind] + ([errc] if errc else [])
                 vals = sub[cols].dropna().values.T

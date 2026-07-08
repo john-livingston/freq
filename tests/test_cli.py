@@ -43,3 +43,10 @@ def test_l1_run(tmp_path):
         assert os.path.exists(os.path.join(out, f)), f
     tab = pd.read_csv(os.path.join(out, 'l1_peaks.csv'))
     assert 'period_d' in tab.columns and len(tab) > 0
+
+
+def test_activity_indicator_missing_column_skipped(tmp_path):
+    r = run_cli([DATA] + COLS + ['-o', str(tmp_path), '-n', '1',
+                                 '-ai', 'no_such_indicator'])
+    assert r.returncode == 0, r.stderr
+    assert 'skipping activity indicator' in r.stdout

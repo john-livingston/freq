@@ -12,3 +12,5 @@ Local patches (only these):
 1. flat imports -> package-relative (`import significance` -> `from . import significance`).
 2. gglasso_basis_pursuit_l1p: f2py hint print at import time replaced with `pass`
    (LARS is the only solver freq supports).
+3. gglasso_basis_pursuit_l1p.py: upstream file uses CRLF line endings; normalized
+   to LF as an incidental byproduct of the patch tooling (no content change).

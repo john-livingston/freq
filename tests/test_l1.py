@@ -40,3 +40,11 @@ def test_no_yerr_requires_sigmaW(synth_rv):
     t, y, _, _ = synth_rv
     with pytest.raises(ValueError):
         l1_periodogram(t, y, None, sigmaW=0.0, plot=False)
+
+
+def test_red_noise_path_smoke(synth_rv):
+    t, y, yerr, (P1, _) = synth_rv
+    res = l1_periodogram(t, y, yerr, pmin=2.0, sigmaW=1.0,
+                         sigmaR=2.0, tau=10.0, Prot=30.0,
+                         significance_methods=(), plot=False)
+    assert abs(res['peak_periods'][0] - P1) < 0.1
