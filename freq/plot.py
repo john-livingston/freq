@@ -5,6 +5,7 @@ from matplotlib.lines import Line2D
 from .util import ordered_set
 
 MARKERCYCLE = "osv^pd"
+FAP_LEVELS = (1e-1, 1e-2, 1e-3)
 
 
 def annotate(ax, txt, annotate_loc=1, annotate_color='k', fontsize=12):
