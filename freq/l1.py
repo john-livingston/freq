@@ -3,6 +3,52 @@ import numpy as np
 from .util import ordered_set, get_alias
 
 
+def _prep_data(x_rv, y_rv, yerr_rv, inst_rv):
+    """Time-sort all arrays and mean-center y per instrument."""
+    x_rv = np.asarray(x_rv, float)
+    y_rv = np.asarray(y_rv, float)
+    order = np.argsort(x_rv)
+    t = x_rv[order]
+    y = y_rv[order].copy()
+    yerr = (np.zeros_like(y) if yerr_rv is None
+            else np.asarray(yerr_rv, float)[order])
+    inst = None if inst_rv is None else np.asarray(inst_rv)[order]
+    if inst is not None:
+        for i in ordered_set(inst):
+            ix = inst == i
+            y[ix] -= y[ix].mean()
+    else:
+        y = y - y.mean()
+    return t, y, yerr, inst
+
+
+def _check_noise_args(kernel, qp):
+    if kernel not in ('gaussian', 'exponential'):
+        raise ValueError(f"kernel must be 'gaussian' or 'exponential', "
+                         f"got {kernel!r}")
+    if qp not in ('cos', 'ess'):
+        raise ValueError(f"qp must be 'cos' or 'ess', got {qp!r}")
+
+
+def _build_V(t, yerr, sigmaW, sigmaR, tau, Prot, kernel='gaussian',
+             qp='cos', qp_gamma=8.0):
+    from .l1p import covariance_matrices
+    if sigmaR > 0 and qp == 'ess' and Prot > 0:
+        if tau <= 0:
+            raise ValueError('tau must be > 0 when sigmaR > 0')
+        dt = np.abs(t[:, None] - t[None, :])
+        if kernel == 'gaussian':
+            decay = np.exp(-0.5*(dt/tau)**2)
+        else:
+            decay = np.exp(-dt/tau)
+        q = np.exp(-qp_gamma*np.sin(np.pi*dt/Prot)**2)
+        return np.diag(yerr**2 + sigmaW**2) + sigmaR**2*decay*q
+    if sigmaR > 0:
+        return covariance_matrices.covar_mat(t, yerr, sigmaW, sigmaR, 0.0,
+                                             tau, Prot=Prot, kernel=kernel)
+    return np.diag(yerr**2 + sigmaW**2)
+
+
 def _build_MH0(t, inst_rv, trend):
     if inst_rv is None:
         MH0 = np.ones((len(t), 1))
@@ -38,48 +84,14 @@ def l1_periodogram(x_rv, y_rv, yerr_rv=None, inst_rv=None, pmin=1.0, pmax=None,
     Instrument offsets (and optional trend) are unpenalized vectors.
     """
     import pandas as pd
-    from .l1p import l1periodogram_v1, covariance_matrices
+    from .l1p import l1periodogram_v1
 
     if yerr_rv is None and sigmaW <= 0:
         raise ValueError('sigmaW must be > 0 when yerr_rv is None')
-    if kernel not in ('gaussian', 'exponential'):
-        raise ValueError(f"kernel must be 'gaussian' or 'exponential', "
-                         f"got {kernel!r}")
-    if qp not in ('cos', 'ess'):
-        raise ValueError(f"qp must be 'cos' or 'ess', got {qp!r}")
+    _check_noise_args(kernel, qp)
 
-    x_rv = np.asarray(x_rv, float)
-    y_rv = np.asarray(y_rv, float)
-    order = np.argsort(x_rv)
-    t = x_rv[order]
-    y = y_rv[order].copy()
-    yerr = (np.zeros_like(y) if yerr_rv is None
-            else np.asarray(yerr_rv, float)[order])
-    inst = None if inst_rv is None else np.asarray(inst_rv)[order]
-
-    if inst is not None:
-        for i in ordered_set(inst):
-            ix = inst == i
-            y[ix] -= y[ix].mean()
-    else:
-        y = y - y.mean()
-
-    if sigmaR > 0 and qp == 'ess' and Prot > 0:
-        if tau <= 0:
-            raise ValueError('tau must be > 0 when sigmaR > 0')
-        dt = np.abs(t[:, None] - t[None, :])
-        if kernel == 'gaussian':
-            decay = np.exp(-0.5*(dt/tau)**2)
-        else:
-            decay = np.exp(-dt/tau)
-        q = np.exp(-qp_gamma*np.sin(np.pi*dt/Prot)**2)
-        V = np.diag(yerr**2 + sigmaW**2) + sigmaR**2*decay*q
-    elif sigmaR > 0:
-        V = covariance_matrices.covar_mat(t, yerr, sigmaW, sigmaR, 0.0, tau,
-                                          Prot=Prot, kernel=kernel)
-    else:
-        V = np.diag(yerr**2 + sigmaW**2)
-
+    t, y, yerr, inst = _prep_data(x_rv, y_rv, yerr_rv, inst_rv)
+    V = _build_V(t, yerr, sigmaW, sigmaR, tau, Prot, kernel, qp, qp_gamma)
     MH0 = _build_MH0(t, inst, trend)
 
     c = l1periodogram_v1.l1p_class(t, y)

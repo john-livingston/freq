@@ -42,6 +42,30 @@ The l1 periodogram requires a noise covariance:
 Example fiducial red-noise model: `--l1_sigmaW 1 --l1_sigmaR 4 --l1_tau 82 --l1_Prot 30`.
 Library equivalent: `l1_periodogram(..., sigmaW=1, sigmaR=4, tau=82, Prot=30, kernel='gaussian')`.
 
+## Noise-model selection by cross-validation
+
+`--l1_cv` ranks a grid of noise models by the Hara et al. (2020) procedure —
+for each model, peaks with log10 FAP < `--l1_cv_fap_threshold` (−0.5) are kept
+and the model is scored by the median held-out log-likelihood over
+`--l1_cv_nsim` (400) random 60/40 train/test splits — then reruns the full l1
+with the best model:
+
+    freq data.csv -c bjd rv rv_unc inst_name --sep ',' -o results --l1_cv \
+        --l1_cv_sigmaW 0.5 1 2 --l1_cv_sigmaR 0 2 4 --l1_cv_tau 41 82 \
+        --l1_cv_Prot -1 30
+
+Extra outputs: `l1_cv.csv` (ranked models) and `l1_cv_peaks.png` (peak
+stability across the top 20% of models). Same split seed for every model
+(`--l1_cv_seed`) so scores are directly comparable and reproducible.
+Library: `l1_crossval(...)`.
+
+The grid is scored in parallel (`--l1_cv_jobs`, default 4), one
+single-threaded-BLAS worker per chunk — measured faster than multithreaded
+BLAS even for a single run (Apple Accelerate spin overhead: 12 s vs 21 s wall
+on a 313-point, 3900-day set). Each worker holds its own sine dictionary
+(~3·Nt·Ngrid·Nphi·8 bytes; ~3 GB for the example above) — lower
+`--l1_cv_jobs` if memory-bound. Never run two freq processes concurrently.
+
 ## Library
 
     from freq import iterative_gls, l1_periodogram, plot_gls_timeseries

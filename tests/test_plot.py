@@ -93,3 +93,17 @@ def test_plot_l1_power_annotates_top_peaks():
     assert any('5.20' in s for s in texts)
     assert any('17.90' in s for s in texts)
     assert not any('3.30' in s for s in texts)
+
+
+def test_plot_l1_cv_peaks_smoke(tmp_path):
+    import pandas as pd
+    from freq.plot import plot_l1_cv_peaks
+    tab = pd.DataFrame([
+        dict(median_cv=-100.0, selected_periods=[5.2, 17.9],
+             selected_log10faps=[-3.0, -1.0]),
+        dict(median_cv=-110.0, selected_periods=[],
+             selected_log10faps=[]),
+    ])
+    fp = tmp_path / 'cv.png'
+    fig = plot_l1_cv_peaks(tab, perc=50, fp=str(fp))
+    assert fig is not None and fp.exists()

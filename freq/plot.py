@@ -175,3 +175,19 @@ def plot_l1_power(res, ax=None, pmax=None, n_peaks=4, color='k', lw=0.8,
     if fp is not None:
         ax.figure.savefig(fp, bbox_inches='tight')
     return ax.figure
+
+
+def plot_l1_cv_peaks(table, perc=20, ax=None, fp=None):
+    """Peak stability across the top perc% of CV-ranked noise models."""
+    if ax is None:
+        _, ax = plt.subplots(figsize=(10, 3))
+    ntop = max(1, int(np.ceil(len(table)*perc/100)))
+    for _, row in table.head(ntop).iterrows():
+        if len(row['selected_periods']):
+            ax.semilogx(row['selected_periods'], row['selected_log10faps'],
+                        'o', alpha=0.7)
+    plt.setp(ax, xlabel='Period [days]', ylabel=r'$\log_{10}$ FAP',
+             title=f'selected peaks of the top {perc}% noise models')
+    if fp is not None:
+        ax.figure.savefig(fp, bbox_inches='tight')
+    return ax.figure

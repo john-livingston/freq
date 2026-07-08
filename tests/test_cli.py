@@ -59,3 +59,18 @@ def test_activity_indicator_missing_column_skipped(tmp_path):
                                  '-ai', 'no_such_indicator'])
     assert r.returncode == 0, r.stderr
     assert 'skipping activity indicator' in r.stdout
+
+
+def test_l1_cv_run(tmp_path):
+    out = str(tmp_path)
+    r = run_cli([DATA] + COLS + ['-o', out, '-i', 'harpsn', '--l1_cv',
+                                 '--pmin', '5', '--l1_no_significance',
+                                 '--l1_cv_sigmaW', '1',
+                                 '--l1_cv_sigmaR', '0', '2',
+                                 '--l1_cv_tau', '10', '--l1_cv_Prot', '-1',
+                                 '--l1_cv_nsim', '30', '--l1_cv_jobs', '1'])
+    assert r.returncode == 0, r.stderr
+    for f in ('l1_cv.csv', 'l1_cv_peaks.png', 'l1_periodogram.png',
+              'l1_peaks.csv'):
+        assert os.path.exists(os.path.join(out, f)), f
+    assert not os.path.exists(os.path.join(out, 'periodogram.png'))

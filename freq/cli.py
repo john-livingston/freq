@@ -47,6 +47,20 @@ def build_parser():
     g.add_argument('--l1_max_tests', type=int, default=12)
     g.add_argument('--l1_no_significance', action='store_true')
     g.add_argument('--l1_n_peaks_plot', type=int, default=4)
+    g = p.add_argument_group('l1 cross-validation')
+    g.add_argument('--l1_cv', action='store_true',
+                   help='rank noise models by CV, then run l1 with the best')
+    g.add_argument('--l1_cv_sigmaW', type=float, nargs='+',
+                   default=[0.5, 1.0, 2.0])
+    g.add_argument('--l1_cv_sigmaR', type=float, nargs='+',
+                   default=[0.0, 2.0, 4.0])
+    g.add_argument('--l1_cv_tau', type=float, nargs='+', default=[41.0, 82.0])
+    g.add_argument('--l1_cv_Prot', type=float, nargs='+', default=[-1.0])
+    g.add_argument('--l1_cv_fap_threshold', type=float, default=-0.5)
+    g.add_argument('--l1_cv_nsim', type=int, default=400)
+    g.add_argument('--l1_cv_training_prop', type=float, default=0.6)
+    g.add_argument('--l1_cv_seed', type=int, default=0)
+    g.add_argument('--l1_cv_jobs', type=int, default=4)
     g = p.add_argument_group('activity')
     g.add_argument('-ai', '--activity_indicators', nargs='+', default=[])
     g = p.add_argument_group('plotting')
@@ -67,6 +81,8 @@ def main(argv=None):
     from .util import ordered_set
 
     args = build_parser().parse_args(argv)
+    if args.l1_cv:
+        args.l1 = True
     if len(args.columns) != 4:
         sys.exit(f'-c/--columns needs exactly 4 names '
                  f'(time rv err instrument), got {len(args.columns)}')
@@ -153,18 +169,49 @@ def main(argv=None):
     if args.l1:
         from .l1 import l1_periodogram
         sig = () if args.l1_no_significance else ('fap', 'evidence_laplace')
-        l1res = l1_periodogram(
-            x_rv, y_rv, yerr_rv, inst_rv=inst_rv,
-            pmin=args.pmin, pmax=args.pmax,
-            sigmaW=args.l1_sigmaW, sigmaR=args.l1_sigmaR,
-            tau=args.l1_tau, Prot=args.l1_Prot, kernel=args.l1_kernel,
-            qp=args.l1_qp, qp_gamma=args.l1_qp_gamma,
-            trend=args.l1_trend, unpenalized_periods=args.l1_unpenalized,
-            significance_methods=sig,
-            max_significance_tests=args.l1_max_tests,
-            n_peaks_plot=args.l1_n_peaks_plot, highlight=args.highlight,
-            annotate_color=args.annotate_color,
-            fp=os.path.join(args.outdir, 'l1_periodogram.png'))
+        if args.l1_cv:
+            from .l1cv import l1_crossval
+            from .plot import plot_l1_cv_peaks
+            cv = l1_crossval(
+                x_rv, y_rv, yerr_rv, inst_rv=inst_rv, pmin=args.pmin,
+                sigmaW=args.l1_cv_sigmaW, sigmaR=args.l1_cv_sigmaR,
+                tau=args.l1_cv_tau, Prot=args.l1_cv_Prot,
+                qp=args.l1_qp, qp_gamma=args.l1_qp_gamma,
+                kernel=args.l1_kernel,
+                fap_threshold=args.l1_cv_fap_threshold,
+                n_sim=args.l1_cv_nsim,
+                training_prop=args.l1_cv_training_prop,
+                seed=args.l1_cv_seed, n_jobs=args.l1_cv_jobs,
+                trend=args.l1_trend,
+                rerun_kwargs=dict(
+                    pmax=args.pmax, significance_methods=sig,
+                    max_significance_tests=args.l1_max_tests,
+                    n_peaks_plot=args.l1_n_peaks_plot,
+                    highlight=args.highlight,
+                    annotate_color=args.annotate_color,
+                    fp=os.path.join(args.outdir, 'l1_periodogram.png')))
+            cvtab = cv['table'].copy()
+            for col in ('selected_periods', 'selected_log10faps'):
+                cvtab[col] = cvtab[col].map(
+                    lambda v: ';'.join(str(x) for x in v))
+            cvtab.to_csv(os.path.join(args.outdir, 'l1_cv.csv'), index=False)
+            plot_l1_cv_peaks(cv['table'],
+                             fp=os.path.join(args.outdir, 'l1_cv_peaks.png'))
+            l1res = cv['l1']
+        else:
+            l1res = l1_periodogram(
+                x_rv, y_rv, yerr_rv, inst_rv=inst_rv,
+                pmin=args.pmin, pmax=args.pmax,
+                sigmaW=args.l1_sigmaW, sigmaR=args.l1_sigmaR,
+                tau=args.l1_tau, Prot=args.l1_Prot, kernel=args.l1_kernel,
+                qp=args.l1_qp, qp_gamma=args.l1_qp_gamma,
+                trend=args.l1_trend,
+                unpenalized_periods=args.l1_unpenalized,
+                significance_methods=sig,
+                max_significance_tests=args.l1_max_tests,
+                n_peaks_plot=args.l1_n_peaks_plot, highlight=args.highlight,
+                annotate_color=args.annotate_color,
+                fp=os.path.join(args.outdir, 'l1_periodogram.png'))
         l1res['table'].to_csv(os.path.join(args.outdir, 'l1_peaks.csv'),
                               index=False)
         np.savez(os.path.join(args.outdir, 'l1_periodogram.npz'),
