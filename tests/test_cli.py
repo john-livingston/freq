@@ -71,6 +71,9 @@ def test_l1_cv_run(tmp_path):
                                  '--l1_cv_nsim', '30', '--l1_cv_jobs', '1'])
     assert r.returncode == 0, r.stderr
     for f in ('l1_cv.csv', 'l1_cv_peaks.png', 'l1_periodogram.png',
-              'l1_peaks.csv'):
+              'l1_peaks.csv', 'l1_cv_best.json'):
         assert os.path.exists(os.path.join(out, f)), f
+    import json
+    best = json.load(open(os.path.join(out, 'l1_cv_best.json')))
+    assert set(best) >= {'sigmaW', 'sigmaR', 'tau', 'Prot'}
     assert not os.path.exists(os.path.join(out, 'periodogram.png'))

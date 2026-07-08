@@ -195,6 +195,12 @@ def main(argv=None):
                 cvtab[col] = cvtab[col].map(
                     lambda v: ';'.join(str(x) for x in v))
             cvtab.to_csv(os.path.join(args.outdir, 'l1_cv.csv'), index=False)
+            import json
+            best = dict(cv['best'], qp=args.l1_qp, kernel=args.l1_kernel,
+                        qp_gamma=args.l1_qp_gamma,
+                        median_cv=float(cv['table'].iloc[0]['median_cv']))
+            with open(os.path.join(args.outdir, 'l1_cv_best.json'), 'w') as w:
+                json.dump(best, w, indent=1)
             plot_l1_cv_peaks(cv['table'],
                              fp=os.path.join(args.outdir, 'l1_cv_peaks.png'))
             l1res = cv['l1']
