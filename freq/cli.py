@@ -24,17 +24,20 @@ def build_parser():
                    help='per-instrument MAD clip factor (before GLS and l1)')
     g.add_argument('-i', '--instruments', nargs='+', default=[],
                    help='only analyze these instruments')
-    g.add_argument('-sm', '--subtract_median', action='store_true')
     g = p.add_argument_group('gls')
     g.add_argument('-n', '--n_iter', type=int, default=3)
     g.add_argument('--pmin', type=float, default=1.0)
     g.add_argument('--pmax', type=float, default=100.0)
     g = p.add_argument_group('l1')
-    g.add_argument('--l1', action='store_true', help='also compute l1 periodogram')
+    g.add_argument('--l1', action='store_true',
+                   help='compute the l1 periodogram instead of the GLS stack')
     g.add_argument('--l1_sigmaW', type=float, default=1.0)
     g.add_argument('--l1_sigmaR', type=float, default=0.0)
     g.add_argument('--l1_tau', type=float, default=0.0)
     g.add_argument('--l1_Prot', type=float, default=-1)
+    g.add_argument('--l1_kernel', choices=['gaussian', 'exponential'],
+                   default='gaussian',
+                   help='red-noise decay kernel (used when --l1_sigmaR > 0)')
     g.add_argument('--l1_trend', action='store_true')
     g.add_argument('--l1_unpenalized', type=float, nargs='+', default=None)
     g.add_argument('--l1_max_tests', type=int, default=12)
@@ -100,19 +103,16 @@ def main(argv=None):
     for inst in ordered_set(inst_rv):
         print(f'{inst}: {(inst_rv == inst).sum()} points')
 
-    if args.subtract_median:
-        for inst in ordered_set(inst_rv):
-            ix = inst_rv == inst
-            y_rv[ix] -= np.median(y_rv[ix])
-
-    x_offset = args.x_offset if args.x_offset == 'auto' else float(args.x_offset)
-
-    res = iterative_gls(x_rv, y_rv, yerr_rv, inst_rv=inst_rv, n=args.n_iter,
-                        pmin=args.pmin, pmax=args.pmax, highlight=args.highlight,
-                        annotate_color=args.annotate_color,
-                        fp=os.path.join(args.outdir, 'periodogram.png'))
-    plot_gls_timeseries(res, x_offset=x_offset,
-                        fp=os.path.join(args.outdir, 'timeseries.png'))
+    if not args.l1:
+        x_offset = (args.x_offset if args.x_offset == 'auto'
+                    else float(args.x_offset))
+        res = iterative_gls(x_rv, y_rv, yerr_rv, inst_rv=inst_rv, n=args.n_iter,
+                            pmin=args.pmin, pmax=args.pmax,
+                            highlight=args.highlight,
+                            annotate_color=args.annotate_color,
+                            fp=os.path.join(args.outdir, 'periodogram.png'))
+        plot_gls_timeseries(res, x_offset=x_offset,
+                            fp=os.path.join(args.outdir, 'timeseries.png'))
 
     if args.activity_indicators:
         from .gls import Gls
@@ -153,7 +153,7 @@ def main(argv=None):
             x_rv, y_rv, yerr_rv, inst_rv=inst_rv,
             pmin=args.pmin, pmax=args.pmax,
             sigmaW=args.l1_sigmaW, sigmaR=args.l1_sigmaR,
-            tau=args.l1_tau, Prot=args.l1_Prot,
+            tau=args.l1_tau, Prot=args.l1_Prot, kernel=args.l1_kernel,
             trend=args.l1_trend, unpenalized_periods=args.l1_unpenalized,
             significance_methods=sig,
             max_significance_tests=args.l1_max_tests,

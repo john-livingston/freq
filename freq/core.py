@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from .gls import Gls
-from .util import get_alias
+from .util import get_alias, ordered_set
 from .plot import plot_gls_power, plot_gls_folded, FAP_LEVELS
 
 
@@ -13,6 +13,13 @@ def iterative_gls(x_rv, y_rv, yerr_rv=None, inst_rv=None, n=3, pmin=1.0, pmax=10
         labels = [f'iteration {i+1}' for i in range(n)]
     if len(labels) < n:
         raise ValueError(f'need at least n={n} labels, got {len(labels)}')
+
+    # GLS has no offset model: remove per-instrument zero points up front
+    if inst_rv is not None:
+        y_rv = np.asarray(y_rv, float).copy()
+        for inst in ordered_set(inst_rv):
+            ix = inst_rv == inst
+            y_rv[ix] -= np.median(y_rv[ix])
 
     yerr = yerr_rv is not None
 

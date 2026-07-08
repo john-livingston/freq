@@ -16,10 +16,17 @@ def run_cli(args):
 
 def test_gls_run(tmp_path):
     out = str(tmp_path)
-    r = run_cli([DATA] + COLS + ['-o', out, '-n', '1', '-mu', '4', '-sm'])
+    r = run_cli([DATA] + COLS + ['-o', out, '-n', '1', '-mu', '4'])
     assert r.returncode == 0, r.stderr
     for f in ('args.txt', 'periodogram.png', 'timeseries.png'):
         assert os.path.exists(os.path.join(out, f)), f
+    for f in ('l1_periodogram.png', 'l1_peaks.csv'):
+        assert not os.path.exists(os.path.join(out, f)), f
+
+
+def test_sm_flag_removed(tmp_path):
+    r = run_cli([DATA] + COLS + ['-o', str(tmp_path), '-n', '1', '-sm'])
+    assert r.returncode != 0
 
 
 def test_columns_validation(tmp_path):
@@ -36,11 +43,13 @@ def test_outlier_clip_reported(tmp_path):
 
 def test_l1_run(tmp_path):
     out = str(tmp_path)
-    r = run_cli([DATA] + COLS + ['-o', out, '-n', '1', '-i', 'harpsn', '-sm',
+    r = run_cli([DATA] + COLS + ['-o', out, '-i', 'harpsn',
                                  '--l1', '--pmin', '5', '--l1_no_significance'])
     assert r.returncode == 0, r.stderr
     for f in ('l1_periodogram.png', 'l1_peaks.csv', 'l1_periodogram.npz'):
         assert os.path.exists(os.path.join(out, f)), f
+    for f in ('periodogram.png', 'timeseries.png'):
+        assert not os.path.exists(os.path.join(out, f)), f
     tab = pd.read_csv(os.path.join(out, 'l1_peaks.csv'))
     assert 'period_d' in tab.columns and len(tab) > 0
 

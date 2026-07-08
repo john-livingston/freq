@@ -36,3 +36,16 @@ def test_short_labels_raise(synth_rv):
     t, y, yerr, _ = synth_rv
     with pytest.raises(ValueError):
         iterative_gls(t, y, yerr, n=2, labels=['only one'], plot=False)
+
+
+def test_instrument_offsets_auto_subtracted():
+    rng = np.random.default_rng(3)
+    t = np.sort(rng.uniform(0, 120, 90))
+    inst = np.where(t < 60, 'inst_a', 'inst_b')
+    P = 7.7
+    y = 5*np.sin(2*np.pi*t/P) + np.where(inst == 'inst_a', 0.0, 4000.0)
+    y = y + rng.normal(0, 1.0, len(t))
+    res = iterative_gls(t, y, np.ones_like(t), inst_rv=inst, n=1,
+                        pmin=2.0, pmax=50.0, plot=False)
+    assert abs(res['summary'][0]['P'] - P) < 0.1
+    assert abs(np.median(res['y'][inst == 'inst_b'])) < 5.0

@@ -18,7 +18,7 @@ def _build_MH0(t, inst_rv, trend):
 
 
 def l1_periodogram(x_rv, y_rv, yerr_rv=None, inst_rv=None, pmin=1.0, pmax=None,
-                   sigmaW=1.0, sigmaR=0.0, tau=0.0, Prot=-1,
+                   sigmaW=1.0, sigmaR=0.0, tau=0.0, Prot=-1, kernel='gaussian',
                    trend=False, unpenalized_periods=None,
                    oversampling=10, Nphi=8,
                    significance_methods=('fap', 'evidence_laplace'),
@@ -28,14 +28,19 @@ def l1_periodogram(x_rv, y_rv, yerr_rv=None, inst_rv=None, pmin=1.0, pmax=None,
     """l1 periodogram (Hara et al. 2017) of an RV time series.
 
     Sibling of iterative_gls: fits all signals at once via basis pursuit.
-    White noise + jitter by default; sigmaR/tau/Prot enable the red-noise
-    kernel. Instrument offsets (and optional trend) are unpenalized vectors.
+    Noise model: V = diag(yerr^2) + sigmaW^2 I + sigmaR^2 k(dt), where k is
+    'gaussian' exp(-dt^2/2tau^2) or 'exponential' exp(-dt/tau), multiplied by
+    (1 + cos(2 pi dt/Prot))/2 when Prot > 0. sigmaR=0 gives white + jitter.
+    Instrument offsets (and optional trend) are unpenalized vectors.
     """
     import pandas as pd
     from .l1p import l1periodogram_v1, covariance_matrices
 
     if yerr_rv is None and sigmaW <= 0:
         raise ValueError('sigmaW must be > 0 when yerr_rv is None')
+    if kernel not in ('gaussian', 'exponential'):
+        raise ValueError(f"kernel must be 'gaussian' or 'exponential', "
+                         f"got {kernel!r}")
 
     x_rv = np.asarray(x_rv, float)
     y_rv = np.asarray(y_rv, float)
@@ -55,7 +60,7 @@ def l1_periodogram(x_rv, y_rv, yerr_rv=None, inst_rv=None, pmin=1.0, pmax=None,
 
     if sigmaR > 0:
         V = covariance_matrices.covar_mat(t, yerr, sigmaW, sigmaR, 0.0, tau,
-                                          Prot=Prot)
+                                          Prot=Prot, kernel=kernel)
     else:
         V = np.diag(yerr**2 + sigmaW**2)
 
