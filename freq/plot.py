@@ -153,6 +153,9 @@ def plot_l1_power(res, ax=None, pmax=None, n_peaks=4, color='k', lw=0.8,
         _, ax = plt.subplots(figsize=(10, 3))
     periods, power = np.asarray(res['periods']), np.asarray(res['power'])
     keep = np.ones(len(periods), bool) if pmax is None else periods <= pmax
+    if not keep.any():
+        raise ValueError(f'pmax={pmax} excludes all periods '
+                         f'(grid spans {periods.min():.3g}-{periods.max():.3g} days)')
     ax.plot(periods[keep], power[keep], color=color, lw=lw)
     pk = np.asarray(res['peak_periods'])
     pv = np.asarray(res['peak_values'])

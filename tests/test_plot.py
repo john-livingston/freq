@@ -70,3 +70,13 @@ def test_plot_l1_power_smoke(tmp_path):
     fig = plot_l1_power(res, pmax=50, n_peaks=2, highlight=[5.2], fp=str(fp))
     assert isinstance(fig, matplotlib.figure.Figure)
     assert fp.exists()
+
+
+def test_plot_l1_power_pmax_excludes_all_raises():
+    from freq.plot import plot_l1_power
+    res = dict(periods=np.geomspace(10, 100, 50),
+               power=np.zeros(50),
+               peak_periods=np.array([20.0]),
+               peak_values=np.array([1.0]))
+    with pytest.raises(ValueError, match='excludes all periods'):
+        plot_l1_power(res, pmax=5)
