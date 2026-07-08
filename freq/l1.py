@@ -19,6 +19,7 @@ def _build_MH0(t, inst_rv, trend):
 
 def l1_periodogram(x_rv, y_rv, yerr_rv=None, inst_rv=None, pmin=1.0, pmax=None,
                    sigmaW=1.0, sigmaR=0.0, tau=0.0, Prot=-1, kernel='gaussian',
+                   qp='cos', qp_gamma=8.0,
                    trend=False, unpenalized_periods=None,
                    oversampling=10, Nphi=8,
                    significance_methods=('fap', 'evidence_laplace'),
@@ -28,9 +29,12 @@ def l1_periodogram(x_rv, y_rv, yerr_rv=None, inst_rv=None, pmin=1.0, pmax=None,
     """l1 periodogram (Hara et al. 2017) of an RV time series.
 
     Sibling of iterative_gls: fits all signals at once via basis pursuit.
-    Noise model: V = diag(yerr^2) + sigmaW^2 I + sigmaR^2 k(dt), where k is
-    'gaussian' exp(-dt^2/2tau^2) or 'exponential' exp(-dt/tau), multiplied by
-    (1 + cos(2 pi dt/Prot))/2 when Prot > 0. sigmaR=0 gives white + jitter.
+    Noise model: V = diag(yerr^2) + sigmaW^2 I + sigmaR^2 k(dt) q(dt), where
+    k is 'gaussian' exp(-dt^2/2tau^2) or 'exponential' exp(-dt/tau), and for
+    Prot > 0 the quasi-periodic factor q is qp='cos' (1 + cos(2 pi dt/Prot))/2
+    (upstream covar_mat) or qp='ess' exp(-qp_gamma sin^2(pi dt/Prot))
+    (standard exp-sine-squared; qp_gamma = 2/lambda^2). sigmaR=0 gives
+    white + jitter.
     Instrument offsets (and optional trend) are unpenalized vectors.
     """
     import pandas as pd
@@ -41,6 +45,8 @@ def l1_periodogram(x_rv, y_rv, yerr_rv=None, inst_rv=None, pmin=1.0, pmax=None,
     if kernel not in ('gaussian', 'exponential'):
         raise ValueError(f"kernel must be 'gaussian' or 'exponential', "
                          f"got {kernel!r}")
+    if qp not in ('cos', 'ess'):
+        raise ValueError(f"qp must be 'cos' or 'ess', got {qp!r}")
 
     x_rv = np.asarray(x_rv, float)
     y_rv = np.asarray(y_rv, float)
@@ -58,7 +64,17 @@ def l1_periodogram(x_rv, y_rv, yerr_rv=None, inst_rv=None, pmin=1.0, pmax=None,
     else:
         y = y - y.mean()
 
-    if sigmaR > 0:
+    if sigmaR > 0 and qp == 'ess' and Prot > 0:
+        if tau <= 0:
+            raise ValueError('tau must be > 0 when sigmaR > 0')
+        dt = np.abs(t[:, None] - t[None, :])
+        if kernel == 'gaussian':
+            decay = np.exp(-0.5*(dt/tau)**2)
+        else:
+            decay = np.exp(-dt/tau)
+        q = np.exp(-qp_gamma*np.sin(np.pi*dt/Prot)**2)
+        V = np.diag(yerr**2 + sigmaW**2) + sigmaR**2*decay*q
+    elif sigmaR > 0:
         V = covariance_matrices.covar_mat(t, yerr, sigmaW, sigmaR, 0.0, tau,
                                           Prot=Prot, kernel=kernel)
     else:

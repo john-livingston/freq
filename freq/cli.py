@@ -38,6 +38,10 @@ def build_parser():
     g.add_argument('--l1_kernel', choices=['gaussian', 'exponential'],
                    default='gaussian',
                    help='red-noise decay kernel (used when --l1_sigmaR > 0)')
+    g.add_argument('--l1_qp', choices=['cos', 'ess'], default='cos',
+                   help='quasi-periodic factor: cosine bell or exp-sine-squared')
+    g.add_argument('--l1_qp_gamma', type=float, default=8.0,
+                   help='ess harmonic-content parameter (2/lambda^2)')
     g.add_argument('--l1_trend', action='store_true')
     g.add_argument('--l1_unpenalized', type=float, nargs='+', default=None)
     g.add_argument('--l1_max_tests', type=int, default=12)
@@ -154,6 +158,7 @@ def main(argv=None):
             pmin=args.pmin, pmax=args.pmax,
             sigmaW=args.l1_sigmaW, sigmaR=args.l1_sigmaR,
             tau=args.l1_tau, Prot=args.l1_Prot, kernel=args.l1_kernel,
+            qp=args.l1_qp, qp_gamma=args.l1_qp_gamma,
             trend=args.l1_trend, unpenalized_periods=args.l1_unpenalized,
             significance_methods=sig,
             max_significance_tests=args.l1_max_tests,

@@ -30,8 +30,11 @@ The l1 periodogram requires a noise covariance:
 
 - `k(Δt)`: `--l1_kernel gaussian` (default) `exp(−Δt²/2τ²)`, or
   `--l1_kernel exponential` `exp(−Δt/τ)`
-- `q(Δt) = [1 + cos(2πΔt/Prot)]/2` when `--l1_Prot > 0`, else 1
-  (quasi-periodic modulation for rotation)
+- `q(Δt)` when `--l1_Prot > 0` (else 1): `--l1_qp cos` (default)
+  `[1 + cos(2πΔt/Prot)]/2` (upstream's cosine bell — fundamental only), or
+  `--l1_qp ess` `exp(−Γ sin²(πΔt/Prot))` (standard exp-sine-squared;
+  `--l1_qp_gamma` = Γ = 2/λ², default 8 — higher Γ = more harmonic content,
+  absorbs activity power at Prot/2, Prot/3, ...)
 - Flags/params: `--l1_sigmaW` (σW, jitter, m/s; default 1), `--l1_sigmaR`
   (σR, correlated amplitude, m/s; default 0 = white only), `--l1_tau`
   (τ, decay timescale, days), `--l1_Prot` (days; −1 disables)

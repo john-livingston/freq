@@ -63,3 +63,19 @@ def test_unknown_kernel_raises(synth_rv):
     with pytest.raises(ValueError, match='kernel'):
         l1_periodogram(t, y, yerr, sigmaR=2.0, tau=10.0,
                        kernel='matern', plot=False)
+
+
+def test_ess_qp_kernel_smoke(synth_rv):
+    t, y, yerr, (P1, _) = synth_rv
+    res = l1_periodogram(t, y, yerr, pmin=2.0, sigmaW=1.0,
+                         sigmaR=2.0, tau=10.0, Prot=5.0,
+                         qp='ess', qp_gamma=8.0,
+                         significance_methods=(), plot=False)
+    assert abs(res['peak_periods'][0] - P1) < 0.1
+
+
+def test_bad_qp_raises(synth_rv):
+    t, y, yerr, _ = synth_rv
+    with pytest.raises(ValueError, match='qp'):
+        l1_periodogram(t, y, yerr, sigmaR=2.0, tau=10.0, Prot=5.0,
+                       qp='matern', plot=False)

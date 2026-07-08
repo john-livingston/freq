@@ -164,8 +164,8 @@ def plot_l1_power(res, ax=None, pmax=None, n_peaks=4, color='k', lw=0.8,
         pk, pv = pk[m], pv[m]
     ax.plot(pk[:n_peaks], pv[:n_peaks], 'o', color=annotate_color, ms=4, zorder=5)
     if len(pk):
-        annotate(ax, f'{pk[0] :.2f} days', annotate_loc=2,
-                 annotate_color=annotate_color)
+        annotate(ax, '\n'.join(f'{p :.2f} d' for p in pk[:n_peaks]),
+                 annotate_loc=2, annotate_color=annotate_color)
     if highlight is not None:
         for hl in highlight:
             ax.axvline(hl, lw=1, ls=':', color='k', zorder=-10)

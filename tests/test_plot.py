@@ -80,3 +80,16 @@ def test_plot_l1_power_pmax_excludes_all_raises():
                peak_values=np.array([1.0]))
     with pytest.raises(ValueError, match='excludes all periods'):
         plot_l1_power(res, pmax=5)
+
+
+def test_plot_l1_power_annotates_top_peaks():
+    from freq.plot import plot_l1_power
+    res = dict(periods=np.geomspace(1, 100, 500),
+               power=np.zeros(500),
+               peak_periods=np.array([5.2, 17.9, 3.3]),
+               peak_values=np.array([2.0, 1.0, 0.4]))
+    fig = plot_l1_power(res, n_peaks=2)
+    texts = [t.get_text() for ax in fig.axes for t in ax.texts]
+    assert any('5.20' in s for s in texts)
+    assert any('17.90' in s for s in texts)
+    assert not any('3.30' in s for s in texts)
