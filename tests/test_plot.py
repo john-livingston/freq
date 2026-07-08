@@ -56,3 +56,17 @@ def test_custom_cmap_respected_single_instrument(synth_rv):
     fig = plot_gls_timeseries(res, cmap=plt.cm.viridis)
     sc = [c for c in fig.axes[0].collections if hasattr(c, 'get_cmap')][0]
     assert sc.get_cmap().name == 'viridis'
+
+
+def test_plot_l1_power_smoke(tmp_path):
+    import matplotlib.figure
+    from freq.plot import plot_l1_power
+    rng = np.random.default_rng(0)
+    res = dict(periods=np.geomspace(1, 100, 500),
+               power=np.abs(rng.normal(0, 0.1, 500)),
+               peak_periods=np.array([5.2, 17.9, 3.3]),
+               peak_values=np.array([2.0, 1.0, 0.4]))
+    fp = tmp_path / 'l1.png'
+    fig = plot_l1_power(res, pmax=50, n_peaks=2, highlight=[5.2], fp=str(fp))
+    assert isinstance(fig, matplotlib.figure.Figure)
+    assert fp.exists()

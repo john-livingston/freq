@@ -145,3 +145,30 @@ def plot_gls_timeseries(res, x_offset='auto', cmap=plt.cm.RdBu_r, labelsdict=Non
     if fp is not None:
         fig.savefig(fp, bbox_inches='tight')
     return fig
+
+
+def plot_l1_power(res, ax=None, pmax=None, n_peaks=4, color='k', lw=0.8,
+                  highlight=None, annotate_color='r', fp=None):
+    if ax is None:
+        _, ax = plt.subplots(figsize=(10, 3))
+    periods, power = np.asarray(res['periods']), np.asarray(res['power'])
+    keep = np.ones(len(periods), bool) if pmax is None else periods <= pmax
+    ax.plot(periods[keep], power[keep], color=color, lw=lw)
+    pk = np.asarray(res['peak_periods'])
+    pv = np.asarray(res['peak_values'])
+    if pmax is not None:
+        m = pk <= pmax
+        pk, pv = pk[m], pv[m]
+    ax.plot(pk[:n_peaks], pv[:n_peaks], 'o', color=annotate_color, ms=4, zorder=5)
+    if len(pk):
+        annotate(ax, f'{pk[0] :.2f} days', annotate_loc=2,
+                 annotate_color=annotate_color)
+    if highlight is not None:
+        for hl in highlight:
+            ax.axvline(hl, lw=1, ls=':', color='k', zorder=-10)
+    plt.setp(ax, xscale='log', xlabel='Period [days]',
+             ylabel=r'$\ell_1$ periodogram [m/s]',
+             xlim=(periods[keep].min(), periods[keep].max()))
+    if fp is not None:
+        ax.figure.savefig(fp, bbox_inches='tight')
+    return ax.figure
