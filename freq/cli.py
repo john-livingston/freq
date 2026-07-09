@@ -159,7 +159,7 @@ def main(argv=None):
                     data = (vals[0], vals[1])
                 g = Gls(data, Pbeg=args.pmin, Pend=args.pmax)
                 plot_gls_power(g, axs[i], fap_levels=FAP_LEVELS,
-                               annotate_text=f'{ind}: {g.best["P"] :.1f} days')
+                               annotate_text=f'{ind}: {g.best["P"] :.1f} d')
                 if i < nrows - 1:
                     plt.setp(axs[i], xlabel='', xticklabels='')
             fig.savefig(os.path.join(args.outdir,

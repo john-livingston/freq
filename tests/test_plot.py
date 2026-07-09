@@ -107,3 +107,16 @@ def test_plot_l1_cv_peaks_smoke(tmp_path):
     fp = tmp_path / 'cv.png'
     fig = plot_l1_cv_peaks(tab, perc=50, fp=str(fp))
     assert fig is not None and fp.exists()
+
+
+def test_log_period_axis_plain_number_labels():
+    from freq.plot import _log_period_axis
+    import matplotlib.pyplot as plt
+    fig, ax = plt.subplots()
+    ax.plot([2, 5, 20], [1, 2, 3])
+    _log_period_axis(ax)
+    ax.set_xlim(4, 22)
+    fmt = ax.xaxis.get_major_formatter()
+    assert fmt(10.0) == '10'      # not '$10^1$' or '10^{1}'
+    assert fmt(20.0) == '20'
+    assert fmt(2.0) == '2'

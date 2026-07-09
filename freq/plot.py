@@ -1,11 +1,24 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
+from matplotlib.ticker import FuncFormatter, LogLocator
 
 from .util import ordered_set
 
 MARKERCYCLE = "osv^pd"
 FAP_LEVELS = (1e-1, 1e-2, 1e-3)
+
+
+def _log_period_axis(ax):
+    """Log-scaled period x-axis with plain-number labels on a 1-2-5 ladder
+    (1, 2, 5, 10, 20, 50, 100, ...) instead of matplotlib's default
+    scientific-notation log ticks (10^0, 4x10^0, 2x10^1, ...)."""
+    ax.set_xscale('log')
+    ax.xaxis.set_major_locator(LogLocator(base=10, subs=(1.0,)))
+    ax.xaxis.set_minor_locator(LogLocator(base=10, subs=(2.0, 5.0)))
+    fmt = FuncFormatter(lambda v, _pos: f'{v:g}')
+    ax.xaxis.set_major_formatter(fmt)
+    ax.xaxis.set_minor_formatter(fmt)
 
 
 def _instrument_style(inst_rv, t, cmap=plt.cm.RdBu_r, markercycle=MARKERCYCLE,
@@ -51,7 +64,7 @@ def plot_gls_power(gls, ax, log=True, fap_levels=None, color='k', lw=0.5,
             ax.axvline(hl, lw=1, ls=':', color='k', zorder=-10)
     plt.setp(ax, xlim=(x.min(), x.max()), xlabel='Period [days]', ylabel='GLS Power')
     if log:
-        plt.setp(ax, xscale='log')
+        _log_period_axis(ax)
     return ax.figure
 
 
@@ -82,7 +95,7 @@ def plot_gls_folded(gls, ax, yerr=False, inst_rv=None, colors=None,
                         fmt='k.', lw=1, ms=0, zorder=0)
         ax.scatter(_phase(gls.t, per, T0), gls.y, c=gls.t, cmap=cmap,
                    edgecolor='black', linewidth=1)
-    annotate(ax, f'{per :.2f} days', annotate_loc=2, annotate_color=annotate_color)
+    annotate(ax, f'{per :.2f} d', annotate_loc=2, annotate_color=annotate_color)
 
     xx = _phase(tt, per, T0)
     ii = np.argsort(xx)
@@ -169,9 +182,10 @@ def plot_l1_power(res, ax=None, pmax=None, n_peaks=4, color='k', lw=0.8,
     if highlight is not None:
         for hl in highlight:
             ax.axvline(hl, lw=1, ls=':', color='k', zorder=-10)
-    plt.setp(ax, xscale='log', xlabel='Period [days]',
+    plt.setp(ax, xlabel='Period [days]',
              ylabel=r'$\ell_1$ periodogram [m/s]',
              xlim=(periods[keep].min(), periods[keep].max()))
+    _log_period_axis(ax)
     if fp is not None:
         ax.figure.savefig(fp, bbox_inches='tight')
     return ax.figure
@@ -184,8 +198,9 @@ def plot_l1_cv_peaks(table, perc=20, ax=None, fp=None):
     ntop = max(1, int(np.ceil(len(table)*perc/100)))
     for _, row in table.head(ntop).iterrows():
         if len(row['selected_periods']):
-            ax.semilogx(row['selected_periods'], row['selected_log10faps'],
-                        'o', alpha=0.7)
+            ax.plot(row['selected_periods'], row['selected_log10faps'],
+                    'o', alpha=0.7)
+    _log_period_axis(ax)
     plt.setp(ax, xlabel='Period [days]', ylabel=r'$\log_{10}$ FAP',
              title=f'selected peaks of the top {perc}% noise models')
     if fp is not None:
