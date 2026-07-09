@@ -71,3 +71,16 @@ scored in parallel (`--l1_cv_jobs`, default 4) with single-threaded-BLAS workers
 GPL-3 (vendored ℓ₁periodogram is GPL-3; vendored gls.py is MIT).
 If you use this, cite Zechmeister & Kürster (2009) for GLS and
 Hara, Boué, Laskar & Correia (2017) for the ℓ₁ periodogram.
+
+## Documentation
+
+Full docs (MkDocs + Material). Install the docs extras and serve locally:
+
+```bash
+pip install -e '.[docs]'
+mkdocs serve
+```
+
+Figures are regenerated with `python scripts/gen_docs_figures.py`. Publish with
+`mkdocs gh-deploy` (site goes live at https://john-livingston.github.io/freq once
+the repository is public).

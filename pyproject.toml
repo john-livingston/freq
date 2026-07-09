@@ -12,6 +12,7 @@ dependencies = ["numpy", "scipy", "pandas", "matplotlib"]
 
 [project.optional-dependencies]
 test = ["pytest"]
+docs = ["mkdocs-material", "mkdocstrings[python]"]
 
 [project.scripts]
 freq = "freq.cli:main"
