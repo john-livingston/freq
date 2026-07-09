@@ -76,7 +76,7 @@ def main(argv=None):
     import matplotlib.pyplot as plt
     import pandas as pd
 
-    from .freq import iterative_gls
+    from .core import iterative_gls
     from .plot import plot_gls_timeseries, plot_gls_power, FAP_LEVELS
     from .util import ordered_set
 

@@ -16,3 +16,16 @@ def synth_rv():
     yerr = np.full_like(t, 1.5)
     y = y + rng.normal(0, yerr)
     return t, y, yerr, (P1, P2)
+
+
+@pytest.fixture(scope='session')
+def rv_file(tmp_path_factory, synth_rv):
+    """synth_rv written as a whitespace RV file (two instruments) for CLI tests."""
+    t, y, yerr, _ = synth_rv
+    inst = np.where(t < 100, 'carmenes', 'harpsn')
+    p = tmp_path_factory.mktemp('data') / 'rv.txt'
+    with open(p, 'w') as w:
+        w.write('btjd rv rv_err inst_name\n')
+        for ti, yi, ei, ii in zip(t, y, yerr, inst):
+            w.write(f'{ti:.6f} {yi:.6f} {ei:.6f} {ii}\n')
+    return str(p)
