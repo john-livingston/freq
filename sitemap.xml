@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://john-livingston.github.io/freq/</loc>
+         <lastmod>2026-07-09</lastmod>
+    </url>
+    <url>
+         <loc>https://john-livingston.github.io/freq/api/</loc>
+         <lastmod>2026-07-09</lastmod>
+    </url>
+    <url>
+         <loc>https://john-livingston.github.io/freq/cli/</loc>
+         <lastmod>2026-07-09</lastmod>
+    </url>
+    <url>
+         <loc>https://john-livingston.github.io/freq/noise-model/</loc>
+         <lastmod>2026-07-09</lastmod>
+    </url>
+    <url>
+         <loc>https://john-livingston.github.io/freq/usage/</loc>
+         <lastmod>2026-07-09</lastmod>
+    </url>
+</urlset>
