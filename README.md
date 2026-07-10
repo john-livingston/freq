@@ -3,9 +3,15 @@
 Frequency analysis of unevenly sampled RV time series: iterative GLS
 (Zechmeister & Kürster 2009) + ℓ₁ periodogram (Hara et al. 2017, MNRAS 464, 1220).
 
+Documentation: https://john-livingston.github.io/freq
+
 ## Install
 
-    pip install -e .
+    pip install git+https://github.com/john-livingston/freq
+
+or for development:
+
+    git clone https://github.com/john-livingston/freq && cd freq && pip install -e .
 
 ## CLI
 
@@ -74,13 +80,13 @@ Hara, Boué, Laskar & Correia (2017) for the ℓ₁ periodogram.
 
 ## Documentation
 
-Full docs (MkDocs + Material). Install the docs extras and serve locally:
+Full docs live at https://john-livingston.github.io/freq (MkDocs + Material).
+To build locally:
 
 ```bash
 pip install -e '.[docs]'
 mkdocs serve
 ```
 
-Figures are regenerated with `python scripts/gen_docs_figures.py`. Publish with
-`mkdocs gh-deploy` (site goes live at https://john-livingston.github.io/freq once
-the repository is public).
+Figures are regenerated with `python scripts/gen_docs_figures.py`; publish with
+`mkdocs gh-deploy`.

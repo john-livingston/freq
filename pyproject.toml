@@ -10,6 +10,10 @@ requires-python = ">=3.10"
 license = {text = "GPL-3.0-or-later"}
 dependencies = ["numpy", "scipy", "pandas", "matplotlib"]
 
+[project.urls]
+Homepage = "https://github.com/john-livingston/freq"
+Documentation = "https://john-livingston.github.io/freq"
+
 [project.optional-dependencies]
 test = ["pytest"]
 docs = ["mkdocs-material", "mkdocstrings[python]"]

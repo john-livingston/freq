@@ -20,7 +20,7 @@ and the fitted model leaves clean residuals:
 ## Install
 
 ```bash
-pip install -e .
+pip install git+https://github.com/john-livingston/freq
 ```
 
 ## Quick start
