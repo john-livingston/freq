@@ -79,3 +79,53 @@ def test_bad_qp_raises(synth_rv):
     with pytest.raises(ValueError, match='qp'):
         l1_periodogram(t, y, yerr, sigmaR=2.0, tau=10.0, Prot=5.0,
                        qp='matern', plot=False)
+
+
+def test_trend_adds_unpenalized_column_and_absorbs_drift():
+    """trend=True appends a time column to MH0 so linear drift is absorbed.
+
+    Catches: the `if trend:` block being skipped -> drift leaks into the
+    periodogram and MH0 is one column short.
+    """
+    rng = np.random.default_rng(5)
+    t = np.sort(rng.uniform(0, 150, 100))
+    P = 6.3
+    y = 4*np.sin(2*np.pi*t/P) + 0.25*t          # strong linear drift
+    y = y + rng.normal(0, 1.0, len(t))
+    yerr = np.ones_like(t)
+    res = l1_periodogram(t, y, yerr, pmin=2.0, sigmaW=1.0, trend=True,
+                         significance_methods=(), plot=False)
+    assert res['l1p'].MH0.shape[1] == 2         # 1 offset + 1 trend column
+    assert abs(res['peak_periods'][0] - P) < 0.1
+
+
+def test_unpenalized_period_is_absorbed_into_null_model():
+    """A period passed to unpenalized_periods is fitted for free, not as a peak.
+
+    Catches: unpenalize_periods() not being called (or called with the wrong
+    periods) -> the known signal still shows up in the l1 solution.
+    """
+    rng = np.random.default_rng(6)
+    t = np.sort(rng.uniform(0, 150, 100))
+    P_known, P_other = 3.7, 11.9
+    y = (6*np.sin(2*np.pi*t/P_known) + 4*np.sin(2*np.pi*t/P_other + 0.5)
+         + rng.normal(0, 1.0, len(t)))
+    yerr = np.ones_like(t)
+    res = l1_periodogram(t, y, yerr, pmin=2.0, sigmaW=1.0,
+                         unpenalized_periods=[P_known],
+                         significance_methods=(), plot=False)
+    assert min(abs(p - P_other) for p in res['peak_periods']) < 0.2
+    assert all(abs(p - P_known) > 0.2 for p in res['peak_periods'])
+
+
+def test_evidence_laplace_adds_bayes_factor_column(synth_rv):
+    """Requesting evidence_laplace puts log10_bayesf_laplace in the table.
+
+    Catches: the significance block that copies the column being dropped.
+    """
+    t, y, yerr, _ = synth_rv
+    res = l1_periodogram(t, y, yerr, pmin=2.0,
+                         significance_methods=('fap', 'evidence_laplace'),
+                         max_significance_tests=2, plot=False)
+    assert 'log10_bayesf_laplace' in res['table'].columns
+    assert res['table']['log10_bayesf_laplace'].notna().all()

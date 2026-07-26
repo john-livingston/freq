@@ -120,3 +120,58 @@ def test_log_period_axis_plain_number_labels():
     assert fmt(10.0) == '10'      # not '$10^1$' or '10^{1}'
     assert fmt(20.0) == '20'
     assert fmt(2.0) == '2'
+
+
+def _vline_positions(ax):
+    """x positions of vertical lines (axvline gives xdata == (x, x))."""
+    out = []
+    for ln in ax.lines:
+        xd = ln.get_xdata()
+        if len(xd) == 2 and xd[0] == xd[1]:
+            out.append(float(xd[0]))
+    return out
+
+
+def test_highlight_draws_vlines_on_gls_power(synth_rv):
+    """-hl/highlight periods are marked on the GLS periodogram.
+
+    Catches: the highlight loop being dropped -> user's marked periods
+    never appear on the plot.
+    """
+    import matplotlib.pyplot as plt
+    from freq.plot import plot_gls_power
+    t, y, yerr, _ = synth_rv
+    res = iterative_gls(t, y, yerr, n=1, plot=False)
+    fig, ax = plt.subplots()
+    plot_gls_power(res['gls'][0], ax, highlight=[3.5, 12.25])
+    pos = _vline_positions(ax)
+    assert 3.5 in pos and 12.25 in pos
+
+
+def test_highlight_draws_vlines_on_l1_power():
+    """highlight periods are marked on the l1 periodogram too."""
+    from freq.plot import plot_l1_power
+    res = dict(periods=np.geomspace(1, 100, 300), power=np.zeros(300),
+               peak_periods=np.array([5.0]), peak_values=np.array([1.0]))
+    fig = plot_l1_power(res, highlight=[7.5])
+    assert 7.5 in _vline_positions(fig.axes[0])
+
+
+def test_folded_plot_without_instruments(synth_rv):
+    """The single-instrument folded panel plots points and error bars.
+
+    Catches: the inst_rv=None branch losing its scatter or errorbar call.
+    """
+    import matplotlib.pyplot as plt
+    from freq.plot import plot_gls_folded
+    t, y, yerr, _ = synth_rv
+    res = iterative_gls(t, y, yerr, n=1, plot=False)
+    from matplotlib.collections import LineCollection, PathCollection
+    fig, ax = plt.subplots()
+    plot_gls_folded(res['gls'][0], ax, yerr=True, inst_rv=None)
+    scatters = [c for c in ax.collections if isinstance(c, PathCollection)]
+    bars = [c for c in ax.collections if isinstance(c, LineCollection)]
+    assert len(scatters) == 1                          # the folded data points
+    assert len(scatters[0].get_offsets()) == len(t)    # every point plotted
+    assert len(bars) == 1                              # error bars drawn
+    assert len(ax.lines) >= 1                          # sinusoid model curve

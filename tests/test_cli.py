@@ -1,4 +1,5 @@
 import json
+import re
 import os
 import subprocess
 import sys
@@ -76,3 +77,24 @@ def test_l1_cv_run(tmp_path, rv_file):
     best = json.load(open(os.path.join(out, 'l1_cv_best.json')))
     assert set(best) >= {'sigmaW', 'sigmaR', 'tau', 'Prot'}
     assert not os.path.exists(os.path.join(out, 'periodogram.png'))
+
+
+def test_activity_indicators_report_periods(tmp_path, rv_file_activity):
+    """Each usable indicator's best period is reported; all-zero ones skipped.
+
+    Catches: dropna() removal (NaNs -> nan period), wrong error-column
+    selection, and removal of the all-zero guard.
+    """
+    out = str(tmp_path)
+    r = run_cli([rv_file_activity, '-c', 'btjd', 'rv', 'rv_err', 'inst_name',
+                 '-o', out, '-n', '1', '--pmin', '2', '--pmax', '40',
+                 '-ai', 'shk', 'halpha', 'zeroerr', 'flat'])
+    assert r.returncode == 0, r.stderr
+    # periods recovered from the indicator time series themselves
+    assert re.search(r'shk:\s*11\.[45]', r.stdout), r.stdout
+    assert re.search(r'halpha:\s*6\.[34]', r.stdout), r.stdout
+    assert re.search(r'zeroerr:\s*8\.[12]', r.stdout), r.stdout
+    assert 'flat:' not in r.stdout            # identically zero -> skipped
+    for inst in ('carmenes', 'harpsn'):
+        assert os.path.exists(
+            os.path.join(out, f'activity_indicators-{inst}.png')), inst

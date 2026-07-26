@@ -158,8 +158,10 @@ def main(argv=None):
                 else:
                     data = (vals[0], vals[1])
                 g = Gls(data, Pbeg=args.pmin, Pend=args.pmax)
+                label = f'{ind}: {g.best["P"] :.1f} d'
+                print(f'{inst} {label} (FAP {g.FAP() :.2e})')
                 plot_gls_power(g, axs[i], fap_levels=FAP_LEVELS,
-                               annotate_text=f'{ind}: {g.best["P"] :.1f} d')
+                               annotate_text=label)
                 if i < nrows - 1:
                     plt.setp(axs[i], xlabel='', xticklabels='')
             fig.savefig(os.path.join(args.outdir,
