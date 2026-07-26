@@ -67,3 +67,25 @@ activity tracer (rotation and its harmonics).
 ```bash
 freq rvs.csv -c bjd rv rv_err inst_name --sep ',' -ai shk halpha bis fwhm -o results
 ```
+
+The best period of each indicator is printed per instrument, and the periodograms
+are written to `activity_indicators-<inst>.png`:
+
+```
+harps shk: 24.4 d (FAP 1.60e-68)
+harps halpha: 24.4 d (FAP 1.39e-63)
+harpsn shk: 24.5 d (FAP 2.42e-75)
+harpsn halpha: 24.5 d (FAP 5.34e-67)
+```
+
+If an indicator has a matching `<name>_err` column it is used as the uncertainty,
+otherwise the GLS runs unweighted. Rows where the indicator is missing are dropped,
+and an indicator is skipped entirely (with a note) when the named column does not
+exist or is identically zero for that instrument.
+
+!!! tip "Interpreting the result"
+    A period that appears in both the RVs and a chromospheric or line-shape
+    indicator is stellar activity, not a planet. Note that activity signals are
+    not coherent over long baselines — spots evolve — so per-instrument (roughly
+    per-epoch) periodograms are often *more* sensitive to them than one
+    periodogram of the pooled time series.

@@ -68,6 +68,10 @@ are written to `--outdir`.
 |------|---------|---------|
 | `-ai`, `--activity_indicators` | none | indicator columns to periodogram per instrument |
 
+Uses `<name>_err` as uncertainties when that column exists. Best periods are
+printed per instrument; plots go to `activity_indicators-<inst>.png`. Indicators
+that are missing or identically zero are skipped with a note.
+
 ## Plotting
 
 | Flag | Default | Meaning |
