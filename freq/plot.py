@@ -110,6 +110,21 @@ def plot_gls_folded(gls, ax, yerr=False, inst_rv=None, colors=None,
 
 def plot_gls_timeseries(res, x_offset='auto', cmap=plt.cm.RdBu_r, labelsdict=None,
                         markers=None, colors=None, markercycle=MARKERCYCLE, fp=None):
+    """Plot the summed GLS model over the data, with a residual panel.
+
+    Takes the result dict returned by iterative_gls and reads the data and model
+    from it, so no arrays need to be passed separately. The upper panel shows the
+    observations with the summed sinusoid model; the lower panel shows the
+    residuals after subtracting it.
+
+    Points are coloured by time and, when the result carries instrument labels,
+    drawn with one marker per instrument (override with markers, colors, or
+    labelsdict for the legend). x_offset='auto' subtracts 2457000 and labels the
+    axis 'BJD - 2457000' when the times look like full BJD, otherwise plots them
+    unshifted; pass a number to subtract it explicitly.
+
+    Saves to fp when given. Returns the figure.
+    """
     x, y, yerr, inst = res['x'], res['y'], res['yerr'], res['inst']
     sinmod, t_hr, sinmod_hr = res['sinmod'], res['t_hr'], res['sinmod_hr']
 
@@ -162,6 +177,17 @@ def plot_gls_timeseries(res, x_offset='auto', cmap=plt.cm.RdBu_r, labelsdict=Non
 
 def plot_l1_power(res, ax=None, pmax=None, n_peaks=4, color='k', lw=0.8,
                   highlight=None, annotate_color='r', fp=None):
+    """Plot an l1 periodogram against period on a log axis.
+
+    Takes the result dict returned by l1_periodogram. The strongest n_peaks are
+    marked and their periods annotated in the corner, in decreasing order of
+    amplitude. Periods in highlight are marked with dotted vertical lines, which
+    is useful for checking known planets or a rotation period against the peaks.
+
+    pmax trims the plot (and the marked peaks) to periods at or below it; it
+    raises ValueError if that would exclude the whole grid. Draws into ax when
+    given, otherwise creates a figure. Saves to fp when given. Returns the figure.
+    """
     if ax is None:
         _, ax = plt.subplots(figsize=(10, 3))
     periods, power = np.asarray(res['periods']), np.asarray(res['power'])

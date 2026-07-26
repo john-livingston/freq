@@ -8,7 +8,31 @@ from .plot import plot_gls_power, plot_gls_folded, FAP_LEVELS
 
 def iterative_gls(x_rv, y_rv, yerr_rv=None, inst_rv=None, n=3, pmin=1.0, pmax=100.0,
                   plot=True, highlight=None, labels=None, annotate_color='k', fp=None):
+    """Iterative (prewhitening) generalized Lomb-Scargle periodogram.
 
+    Computes a GLS periodogram over periods pmin to pmax, subtracts the
+    best-fit sinusoid, and repeats n times, so successive signals are found
+    after the strongest ones are removed. When inst_rv is given, per-instrument
+    median velocities are subtracted first, since the GLS has no offset model
+    (contrast l1_periodogram, which fits offsets as unpenalized vectors).
+
+    With plot=True a figure is built with one row per iteration: the periodogram
+    on the left and the phase-folded best period on the right. Pass fp to save it.
+    Sinusoid models are evaluated on a fine grid (t_hr) sampled at pmin/20 so
+    short-period models are not aliased.
+
+    Returns a dict with:
+        gls        list of n Gls objects, one per iteration
+        summary    list of n dicts: P, e_P, FAP, alias_day, alias_month
+                   (aliases are (plus, minus) tuples from get_alias)
+        sinmod     summed model evaluated at x_rv
+        t_hr       fine time grid; sinmod_hr the summed model on it
+        x, y,      the arrays actually fitted (y median-subtracted per
+        yerr, inst instrument when inst_rv was given)
+        fig        the figure, or None when plot=False
+
+    The returned dict is what plot_gls_timeseries consumes.
+    """
     if labels is None:
         labels = [f'iteration {i+1}' for i in range(n)]
     if len(labels) < n:
