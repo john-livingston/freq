@@ -607,6 +607,30 @@
 
     <div class="doc doc-contents first">
 
+        <p>Iterative (prewhitening) generalized Lomb-Scargle periodogram.</p>
+<p>Computes a GLS periodogram over periods pmin to pmax, subtracts the
+best-fit sinusoid, and repeats n times, so successive signals are found
+after the strongest ones are removed. When inst_rv is given, per-instrument
+median velocities are subtracted first, since the GLS has no offset model
+(contrast l1_periodogram, which fits offsets as unpenalized vectors).</p>
+<p>With plot=True a figure is built with one row per iteration: the periodogram
+on the left and the phase-folded best period on the right. Pass fp to save it.
+Sinusoid models are evaluated on a fine grid (t_hr) sampled at pmin/20 so
+short-period models are not aliased.</p>
+
+
+<details class="returns-a-dict-with" open>
+  <summary>Returns a dict with</summary>
+  <p>gls        list of n Gls objects, one per iteration
+summary    list of n dicts: P, e_P, FAP, alias_day, alias_month
+           (aliases are (plus, minus) tuples from get_alias)
+sinmod     summed model evaluated at x_rv
+t_hr       fine time grid; sinmod_hr the summed model on it
+x, y,      the arrays actually fitted (y median-subtracted per
+yerr, inst instrument when inst_rv was given)
+fig        the figure, or None when plot=False</p>
+</details>        <p>The returned dict is what plot_gls_timeseries consumes.</p>
+
 
     </div>
 
@@ -678,6 +702,18 @@ l1_periodogram rerun with the best model>]).</p>
 
     <div class="doc doc-contents first">
 
+        <p>Plot the summed GLS model over the data, with a residual panel.</p>
+<p>Takes the result dict returned by iterative_gls and reads the data and model
+from it, so no arrays need to be passed separately. The upper panel shows the
+observations with the summed sinusoid model; the lower panel shows the
+residuals after subtracting it.</p>
+<p>Points are coloured by time and, when the result carries instrument labels,
+drawn with one marker per instrument (override with markers, colors, or
+labelsdict for the legend). x_offset='auto' subtracts 2457000 and labels the
+axis 'BJD - 2457000' when the times look like full BJD, otherwise plots them
+unshifted; pass a number to subtract it explicitly.</p>
+<p>Saves to fp when given. Returns the figure.</p>
+
 
     </div>
 
@@ -693,6 +729,15 @@ l1_periodogram rerun with the best model>]).</p>
 
 
     <div class="doc doc-contents first">
+
+        <p>Plot an l1 periodogram against period on a log axis.</p>
+<p>Takes the result dict returned by l1_periodogram. The strongest n_peaks are
+marked and their periods annotated in the corner, in decreasing order of
+amplitude. Periods in highlight are marked with dotted vertical lines, which
+is useful for checking known planets or a rotation period against the peaks.</p>
+<p>pmax trims the plot (and the marked peaks) to periods at or below it; it
+raises ValueError if that would exclude the whole grid. Draws into ax when
+given, otherwise creates a figure. Saves to fp when given. Returns the figure.</p>
 
 
     </div>
