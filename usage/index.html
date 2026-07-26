@@ -620,6 +620,25 @@ column, so you can check whether a periodic RV signal also appears in a stellar
 activity tracer (rotation and its harmonics).</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>freq<span class="w"> </span>rvs.csv<span class="w"> </span>-c<span class="w"> </span>bjd<span class="w"> </span>rv<span class="w"> </span>rv_err<span class="w"> </span>inst_name<span class="w"> </span>--sep<span class="w"> </span><span class="s1">&#39;,&#39;</span><span class="w"> </span>-ai<span class="w"> </span>shk<span class="w"> </span>halpha<span class="w"> </span>bis<span class="w"> </span>fwhm<span class="w"> </span>-o<span class="w"> </span>results
 </code></pre></div>
+<p>The best period of each indicator is printed per instrument, and the periodograms
+are written to <code>activity_indicators-&lt;inst&gt;.png</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>harps shk: 24.4 d (FAP 1.60e-68)
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>harps halpha: 24.4 d (FAP 1.39e-63)
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>harpsn shk: 24.5 d (FAP 2.42e-75)
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>harpsn halpha: 24.5 d (FAP 5.34e-67)
+</code></pre></div>
+<p>If an indicator has a matching <code>&lt;name&gt;_err</code> column it is used as the uncertainty,
+otherwise the GLS runs unweighted. Rows where the indicator is missing are dropped,
+and an indicator is skipped entirely (with a note) when the named column does not
+exist or is identically zero for that instrument.</p>
+<div class="admonition tip">
+<p class="admonition-title">Interpreting the result</p>
+<p>A period that appears in both the RVs and a chromospheric or line-shape
+indicator is stellar activity, not a planet. Note that activity signals are
+not coherent over long baselines — spots evolve — so per-instrument (roughly
+per-epoch) periodograms are often <em>more</em> sensitive to them than one
+periodogram of the pooled time series.</p>
+</div>
 
 
 
