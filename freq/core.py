@@ -38,9 +38,17 @@ def iterative_gls(x_rv, y_rv, yerr_rv=None, inst_rv=None, n=3, pmin=1.0, pmax=10
     if len(labels) < n:
         raise ValueError(f'need at least n={n} labels, got {len(labels)}')
 
-    # GLS has no offset model: remove per-instrument zero points up front
+    x_rv = np.asarray(x_rv, float)
+    y_rv = np.asarray(y_rv, float)
+    if yerr_rv is not None:
+        yerr_rv = np.asarray(yerr_rv, float)
     if inst_rv is not None:
-        y_rv = np.asarray(y_rv, float).copy()
+        inst_rv = np.asarray(inst_rv)
+
+    # Gls fits a single constant offset but not per-instrument ones, so
+    # remove each instrument's zero point up front
+    if inst_rv is not None:
+        y_rv = y_rv.copy()
         for inst in ordered_set(inst_rv):
             ix = inst_rv == inst
             y_rv[ix] -= np.median(y_rv[ix])

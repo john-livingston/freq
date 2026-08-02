@@ -33,9 +33,11 @@ def _check_noise_args(kernel, qp):
 def _build_V(t, yerr, sigmaW, sigmaR, tau, Prot, kernel='gaussian',
              qp='cos', qp_gamma=8.0):
     from .l1p import covariance_matrices
+    if sigmaR > 0 and tau <= 0:
+        # covar_exp degenerates to a diagonal when tau <= 0, which would turn
+        # the requested red noise into extra white jitter with no warning
+        raise ValueError('tau must be > 0 when sigmaR > 0')
     if sigmaR > 0 and qp == 'ess' and Prot > 0:
-        if tau <= 0:
-            raise ValueError('tau must be > 0 when sigmaR > 0')
         dt = np.abs(t[:, None] - t[None, :])
         if kernel == 'gaussian':
             decay = np.exp(-0.5*(dt/tau)**2)
@@ -47,6 +49,23 @@ def _build_V(t, yerr, sigmaW, sigmaR, tau, Prot, kernel='gaussian',
         return covariance_matrices.covar_mat(t, yerr, sigmaW, sigmaR, 0.0,
                                              tau, Prot=Prot, kernel=kernel)
     return np.diag(yerr**2 + sigmaW**2)
+
+
+def _unpenalized_MH0(t, MH0, periods):
+    """Append free cosine/sine columns at known periods to the null model.
+
+    Mirrors upstream l1p_class.unpenalize_periods, which builds the columns
+    from mean-centered times. Returning the augmented matrix (rather than
+    mutating the model in place, as upstream does) lets callers keep passing
+    the same MH0 on later update_model calls without undoing it.
+    """
+    tc = t - t.mean()
+    cols = [np.asarray(MH0, float)]
+    for P in periods:
+        om = 2*np.pi/P
+        for v in (np.cos(om*tc), np.sin(om*tc)):
+            cols.append((v/np.linalg.norm(v))[:, None])
+    return np.hstack(cols)
 
 
 def _build_MH0(t, inst_rv, trend):
@@ -93,6 +112,8 @@ def l1_periodogram(x_rv, y_rv, yerr_rv=None, inst_rv=None, pmin=1.0, pmax=None,
     t, y, yerr, inst = _prep_data(x_rv, y_rv, yerr_rv, inst_rv)
     V = _build_V(t, yerr, sigmaW, sigmaR, tau, Prot, kernel, qp, qp_gamma)
     MH0 = _build_MH0(t, inst, trend)
+    if unpenalized_periods:
+        MH0 = _unpenalized_MH0(t, MH0, unpenalized_periods)
 
     c = l1periodogram_v1.l1p_class(t, y)
     c.starname = starname
@@ -100,8 +121,6 @@ def l1_periodogram(x_rv, y_rv, yerr_rv=None, inst_rv=None, pmin=1.0, pmax=None,
         c.dataset_names = list(ordered_set(inst))
     c.set_model(omegamax=2*np.pi/pmin, oversampling=oversampling, Nphi=Nphi,
                 V=V, MH0=MH0, verbose=verbose)
-    if unpenalized_periods:
-        c.unpenalize_periods(list(unpenalized_periods), MH0, verbose=verbose)
     c.l1_perio(numerical_method='lars', plot_output=False, verbose=verbose,
                significance_evaluation_methods=list(significance_methods),
                max_n_significance_tests=max_significance_tests)

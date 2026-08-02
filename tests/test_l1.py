@@ -129,3 +129,35 @@ def test_evidence_laplace_adds_bayes_factor_column(synth_rv):
                          max_significance_tests=2, plot=False)
     assert 'log10_bayesf_laplace' in res['table'].columns
     assert res['table']['log10_bayesf_laplace'].notna().all()
+
+
+def test_sigmaR_without_tau_raises(synth_rv):
+    """sigmaR > 0 with tau <= 0 is rejected on every kernel/qp path.
+
+    Catches: the cos path silently returning a diagonal covariance, so the
+    requested red noise becomes extra white jitter with no warning.
+    """
+    t, y, yerr, _ = synth_rv
+    for qp, Prot in (('cos', -1.0), ('cos', 30.0), ('ess', 30.0)):
+        with pytest.raises(ValueError, match='tau'):
+            l1_periodogram(t, y, yerr, sigmaR=4.0, tau=0.0, qp=qp, Prot=Prot,
+                           plot=False)
+
+
+def test_unsorted_times_give_same_result_as_sorted(synth_rv):
+    """Input need not be time-ordered; the wrapper sorts before fitting.
+
+    Catches: dropping the argsort in _prep_data. Upstream sizes the whole
+    frequency grid from Tobs = t[-1] - t[0], so unsorted input silently
+    changes the grid.
+    """
+    t, y, yerr, (P1, _) = synth_rv
+    rng = np.random.default_rng(9)
+    perm = rng.permutation(len(t))
+    ref = l1_periodogram(t, y, yerr, pmin=2.0, sigmaW=1.0,
+                         significance_methods=(), plot=False)
+    shuf = l1_periodogram(t[perm], y[perm], yerr[perm], pmin=2.0, sigmaW=1.0,
+                          significance_methods=(), plot=False)
+    assert np.allclose(ref['periods'], shuf['periods'])
+    assert np.allclose(ref['power'], shuf['power'])
+    assert abs(shuf['peak_periods'][0] - P1) < 0.1

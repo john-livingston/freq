@@ -4,8 +4,8 @@ import os
 
 import numpy as np
 
-from .l1 import (_prep_data, _build_V, _build_MH0, _check_noise_args,
-                 l1_periodogram)
+from .l1 import (_prep_data, _build_V, _build_MH0, _unpenalized_MH0,
+                 _check_noise_args, l1_periodogram)
 
 _BLAS_ENV = ('VECLIB_MAXIMUM_THREADS', 'OMP_NUM_THREADS',
              'OPENBLAS_NUM_THREADS', 'MKL_NUM_THREADS')
@@ -32,10 +32,13 @@ def _cv_chunk(args):
     models (update_model skips the dictionary rebuild for V-only changes).
     """
     (t, y, yerr, MH0, models, pmin, oversampling, Nphi, kernel, qp, qp_gamma,
-     fap_threshold, n_sim, training_prop, seed, max_tests) = args
+     fap_threshold, n_sim, training_prop, seed, max_tests,
+     unpenalized_periods) = args
     from .l1p import l1periodogram_v1, significance
 
     c = l1periodogram_v1.l1p_class(t, y.copy())
+    if unpenalized_periods:
+        MH0 = _unpenalized_MH0(t, MH0, unpenalized_periods)
     rows = []
     for j, m in enumerate(models):
         V = _build_V(t, yerr, m['sigmaW'], m['sigmaR'], m['tau'], m['Prot'],
@@ -44,7 +47,10 @@ def _cv_chunk(args):
             c.set_model(omegamax=2*np.pi/pmin, oversampling=oversampling,
                         Nphi=Nphi, V=V, MH0=MH0, verbose=0)
         else:
-            c.update_model(V=V, verbose=0)
+            # MH0 must be passed too: the projection matrix is V-weighted, and
+            # upstream only rebuilds it when MH0 is given. Passing it does not
+            # rebuild the sine dictionary (only omegamax/oversampling/Nphi do).
+            c.update_model(V=V, MH0=MH0, verbose=0)
         c.l1_perio(numerical_method='lars', plot_output=False, verbose=0,
                    significance_evaluation_methods=['fap'],
                    max_n_significance_tests=max_tests)
@@ -71,6 +77,7 @@ def l1_crossval(x_rv, y_rv, yerr_rv=None, inst_rv=None, pmin=1.0,
                 qp='cos', qp_gamma=8.0, kernel='gaussian',
                 fap_threshold=-0.5, n_sim=400, training_prop=0.6, seed=0,
                 oversampling=10, Nphi=8, trend=False,
+                unpenalized_periods=None,
                 n_jobs=4, max_significance_tests=10,
                 rerun_best=True, rerun_kwargs=None, verbose=0):
     """Rank noise models for the l1 periodogram by cross-validation.
@@ -100,7 +107,8 @@ def l1_crossval(x_rv, y_rv, yerr_rv=None, inst_rv=None, pmin=1.0,
     chunks = [grid[i::n_workers] for i in range(n_workers)]
     argss = [(t, y, yerr, MH0, chunk, pmin, oversampling, Nphi, kernel, qp,
               qp_gamma, fap_threshold, n_sim, training_prop, seed,
-              max_significance_tests) for chunk in chunks]
+              max_significance_tests, unpenalized_periods)
+             for chunk in chunks]
 
     if n_workers == 1:
         rows = _cv_chunk(argss[0])
@@ -131,6 +139,7 @@ def l1_crossval(x_rv, y_rv, yerr_rv=None, inst_rv=None, pmin=1.0,
     if rerun_best:
         kwargs = dict(pmin=pmin, kernel=kernel, qp=qp, qp_gamma=qp_gamma,
                       trend=trend, oversampling=oversampling, Nphi=Nphi,
+                      unpenalized_periods=unpenalized_periods,
                       verbose=verbose)
         kwargs.update(rerun_kwargs or {})
         res['l1'] = l1_periodogram(x_rv, y_rv, yerr_rv, inst_rv=inst_rv,

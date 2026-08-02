@@ -49,3 +49,25 @@ def test_instrument_offsets_auto_subtracted():
                         pmin=2.0, pmax=50.0, plot=False)
     assert abs(res['summary'][0]['P'] - P) < 0.1
     assert abs(np.median(res['y'][inst == 'inst_b'])) < 5.0
+
+
+def test_list_inputs_accepted_like_arrays():
+    """List inputs behave identically to arrays.
+
+    Catches: `inst_rv == inst` on a Python list evaluating to scalar False,
+    which silently skips per-instrument offset removal, and x_rv.min() on a
+    list raising AttributeError.
+    """
+    rng = np.random.default_rng(3)
+    t = np.sort(rng.uniform(0, 120, 90))
+    inst = np.where(t < 60, 'a', 'b')
+    P = 7.7
+    y = (5*np.sin(2*np.pi*t/P) + np.where(inst == 'a', 0.0, 4000.0)
+         + rng.normal(0, 1.0, len(t)))
+    yerr = np.ones_like(t)
+    arr = iterative_gls(t, y, yerr, inst_rv=inst, n=1, pmin=2, pmax=50,
+                        plot=False)
+    lst = iterative_gls(list(t), list(y), list(yerr), inst_rv=list(inst), n=1,
+                        pmin=2, pmax=50, plot=False)
+    assert abs(arr['summary'][0]['P'] - P) < 0.1
+    assert abs(lst['summary'][0]['P'] - P) < 0.1
