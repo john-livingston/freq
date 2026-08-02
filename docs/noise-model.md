@@ -27,9 +27,9 @@ When \(P_\mathrm{rot} > 0\), a rotation-modulation factor \(q(\Delta t)\) multip
 the kernel (otherwise \(q = 1\)), selected with `qp`:
 
 - `cos` (default): \(q(\Delta t) = \tfrac12\left[1 + \cos(2\pi\Delta t / P_\mathrm{rot})\right]\)
-  — a cosine bell (fundamental only).
+  (a cosine bell, fundamental only).
 - `ess`: \(q(\Delta t) = e^{-\Gamma \sin^2(\pi \Delta t / P_\mathrm{rot})}\)
-  — the standard exp-sine-squared kernel, with \(\Gamma = 2/\lambda^2\) set by
+  (the standard exp-sine-squared kernel), with \(\Gamma = 2/\lambda^2\) set by
   `qp_gamma` (default 8). Larger \(\Gamma\) puts more power in the harmonics
   (\(P_\mathrm{rot}/2\), \(P_\mathrm{rot}/3\), …).
 
@@ -57,5 +57,5 @@ Choosing \((\sigma_W, \sigma_R, \tau, P_\mathrm{rot})\) by hand is error-prone.
 
 then ranks models by that score and reruns the \(\ell_1\) periodogram with the best
 one. Because the score is comparable across models (same split seed), the ranking is
-reproducible. Trust the peaks that recur across the top-ranked models — see the
+reproducible. Trust the peaks that recur across the top-ranked models; see the
 peak-stability plot in the [Guide](usage.md).

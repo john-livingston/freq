@@ -4,7 +4,7 @@ Frequency analysis of unevenly sampled radial-velocity time series: iterative GL
 (Zechmeister & Kürster 2009) and the \(\ell_1\) periodogram (Hara et al. 2017,
 MNRAS 464, 1220).
 
-Here is a radial-velocity time series — two instruments, a few planets hidden in
+Here is a radial-velocity time series with two instruments and a few planets hidden in
 the scatter:
 
 ![Synthetic RV time series](assets/data.png)

@@ -5,7 +5,7 @@ planets (see `scripts/gen_docs_figures.py`). Substitute your own arrays.
 
 ## Iterative GLS
 
-`iterative_gls` computes a generalized Lomb–Scargle periodogram, subtracts the best
+`iterative_gls` computes a generalized Lomb-Scargle periodogram, subtracts the best
 sinusoid, and repeats `n` times. Per-instrument median velocities are subtracted
 automatically (GLS has no offset model). The result dict carries the fitted data,
 the per-iteration summary, and the figure.
@@ -45,7 +45,7 @@ print(l1['table'])                # peaks with periods, amplitudes, FAP, aliases
 
 `l1_crossval` ranks a grid of noise models by held-out log-likelihood (Hara et al.
 2020) and reruns the \(\ell_1\) periodogram with the best one. The peak-stability
-plot shows which peaks survive across the top-ranked models — trust the ones that
+plot shows which peaks survive across the top-ranked models: trust the ones that
 appear regardless of the assumed noise.
 
 ```python
@@ -86,6 +86,6 @@ exist or is identically zero for that instrument.
 !!! tip "Interpreting the result"
     A period that appears in both the RVs and a chromospheric or line-shape
     indicator is stellar activity, not a planet. Note that activity signals are
-    not coherent over long baselines — spots evolve — so per-instrument (roughly
+    not coherent over long baselines (spots evolve), so per-instrument (roughly
     per-epoch) periodograms are often *more* sensitive to them than one
     periodogram of the pooled time series.

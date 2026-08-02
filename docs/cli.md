@@ -8,7 +8,7 @@ are written to `--outdir`.
 
 | Flag | Default | Meaning |
 |------|---------|---------|
-| `input` | — | input table (positional) |
+| `input` | n/a | input table (positional) |
 | `--sep` | `\s+` | column separator regex |
 | `-c`, `--columns` | `time mnvel errvel tel` | time / rv / err / instrument column names (exactly 4) |
 | `-o`, `--outdir` | `.` | output directory |
