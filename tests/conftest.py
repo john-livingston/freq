@@ -56,3 +56,25 @@ def rv_file(tmp_path_factory, synth_rv):
         for ti, yi, ei, ii in zip(t, y, yerr, inst):
             w.write(f'{ti:.6f} {yi:.6f} {ei:.6f} {ii}\n')
     return str(p)
+
+
+@pytest.fixture(scope='session')
+def rv_file_messy(tmp_path_factory, synth_rv):
+    """RV file with a constant-velocity instrument, NaN rows, and outliers.
+
+    inst_c has identical velocities (MAD 0); two rows carry NaN rv/rv_err;
+    inst_a gets two large outliers.
+    """
+    t, y, yerr, _ = synth_rv
+    y, yerr = y.copy(), yerr.copy()
+    inst = np.where(t < 100, 'inst_a', 'inst_b')
+    inst[:12] = 'inst_c'
+    y[inst == 'inst_c'] = 5.0            # zero MAD
+    y[20], y[21] = 500.0, -500.0         # outliers in inst_a
+    y[30], yerr[31] = np.nan, np.nan     # non-finite rows
+    p = tmp_path_factory.mktemp('data') / 'rv_messy.txt'
+    with open(p, 'w') as w:
+        w.write('btjd rv rv_err inst_name\n')
+        for i in range(len(t)):
+            w.write(f'{t[i]:.6f} {y[i]:.6f} {yerr[i]:.6f} {inst[i]}\n')
+    return str(p)

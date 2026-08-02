@@ -100,6 +100,13 @@ def main(argv=None):
         if df.empty:
             sys.exit(f'no data for -i {args.instruments}; available: {avail}')
 
+    finite = np.isfinite(df[[timecol, velcol, errcol]].values).all(axis=1)
+    if not finite.all():
+        print(f'dropping {(~finite).sum()} non-finite rows')
+        df = df[finite]
+    if df.empty:
+        sys.exit('no usable rows left after dropping non-finite values')
+
     if args.max_unc is not None:
         idx = df[errcol] > args.max_unc
         print(f'dropping {idx.sum()} points with {errcol} > {args.max_unc}')
@@ -112,6 +119,8 @@ def main(argv=None):
             ix = iv == inst
             med = np.median(yv[ix])
             mad = np.median(np.abs(yv[ix] - med))
+            if mad == 0:
+                continue          # constant series: nothing to clip against
             keep[ix] = np.abs(yv[ix] - med) < args.outlier_cond*mad/0.67
         print(f'outlier clip ({args.outlier_cond} MAD): '
               f'dropping {(~keep).sum()} points')
@@ -185,6 +194,7 @@ def main(argv=None):
                 training_prop=args.l1_cv_training_prop,
                 seed=args.l1_cv_seed, n_jobs=args.l1_cv_jobs,
                 trend=args.l1_trend,
+                unpenalized_periods=args.l1_unpenalized,
                 rerun_kwargs=dict(
                     pmax=args.pmax, significance_methods=sig,
                     max_significance_tests=args.l1_max_tests,

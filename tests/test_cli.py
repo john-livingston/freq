@@ -36,10 +36,18 @@ def test_columns_validation(tmp_path, rv_file):
     assert 'exactly 4' in r.stderr
 
 
-def test_outlier_clip_reported(tmp_path, rv_file):
-    r = run_cli([rv_file] + COLS + ['-o', str(tmp_path), '-n', '1', '-oc', '3.5'])
+def test_outlier_clip_drops_exactly_the_outliers(tmp_path, rv_file_messy):
+    """The MAD clip drops the injected outliers and nothing else.
+
+    Catches: a wrong threshold (e.g. mad*0.67 instead of mad/0.67), which a
+    smoke test asserting only that the run printed something cannot see.
+    """
+    r = run_cli([rv_file_messy] + COLS + ['-o', str(tmp_path), '-n', '1',
+                                          '-oc', '3.5'])
     assert r.returncode == 0, r.stderr
-    assert 'outlier clip' in r.stdout
+    m = re.search(r'outlier clip \(3\.5 MAD\): dropping (\d+) points', r.stdout)
+    assert m, r.stdout
+    assert int(m.group(1)) == 2          # the two injected +/-500 m/s points
 
 
 def test_l1_run(tmp_path, rv_file):
@@ -98,3 +106,30 @@ def test_activity_indicators_report_periods(tmp_path, rv_file_activity):
     for inst in ('carmenes', 'harpsn'):
         assert os.path.exists(
             os.path.join(out, f'activity_indicators-{inst}.png')), inst
+
+
+def test_zero_mad_instrument_survives_outlier_clip(tmp_path, rv_file_messy):
+    """A constant-velocity instrument must not be wiped out by the MAD clip.
+
+    Catches: threshold cond*mad/0.67 collapsing to 0 when mad == 0, which
+    discards every point of that instrument.
+    """
+    out = str(tmp_path)
+    r = run_cli([rv_file_messy] + COLS + ['-o', out, '-n', '1', '-oc', '3.5'])
+    assert r.returncode == 0, r.stderr
+    assert re.search(r'inst_c: \d+ points', r.stdout), r.stdout
+    n = int(re.search(r'inst_c: (\d+) points', r.stdout).group(1))
+    assert n > 0
+
+
+def test_non_finite_rows_dropped_and_reported(tmp_path, rv_file_messy):
+    """NaN rv/rv_err rows are dropped before fitting, with a count.
+
+    Catches: NaNs reaching Gls, which makes the whole power array NaN and
+    yields a meaningless best period with FAP nan and exit code 0.
+    """
+    out = str(tmp_path)
+    r = run_cli([rv_file_messy] + COLS + ['-o', out, '-n', '1'])
+    assert r.returncode == 0, r.stderr
+    assert re.search(r'dropping 2 non-finite', r.stdout), r.stdout
+    assert 'nan' not in r.stdout.lower()
