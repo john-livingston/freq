@@ -577,7 +577,7 @@
 <p>This walkthrough uses a synthetic two-instrument data set with three injected
 planets (see <code>scripts/gen_docs_figures.py</code>). Substitute your own arrays.</p>
 <h2 id="iterative-gls">Iterative GLS<a class="headerlink" href="#iterative-gls" title="Permanent link">&para;</a></h2>
-<p><code>iterative_gls</code> computes a generalized Lomb–Scargle periodogram, subtracts the best
+<p><code>iterative_gls</code> computes a generalized Lomb-Scargle periodogram, subtracts the best
 sinusoid, and repeats <code>n</code> times. Per-instrument median velocities are subtracted
 automatically (GLS has no offset model). The result dict carries the fitted data,
 the per-iteration summary, and the figure.</p>
@@ -605,7 +605,7 @@ covariance parameters.</p>
 <h2 id="choosing-a-noise-model-by-cross-validation">Choosing a noise model by cross-validation<a class="headerlink" href="#choosing-a-noise-model-by-cross-validation" title="Permanent link">&para;</a></h2>
 <p><code>l1_crossval</code> ranks a grid of noise models by held-out log-likelihood (Hara et al.
 2020) and reruns the <span class="arithmatex">\(\ell_1\)</span> periodogram with the best one. The peak-stability
-plot shows which peaks survive across the top-ranked models — trust the ones that
+plot shows which peaks survive across the top-ranked models: trust the ones that
 appear regardless of the assumed noise.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">freq</span><span class="w"> </span><span class="kn">import</span> <span class="n">l1_crossval</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
@@ -635,7 +635,7 @@ exist or is identically zero for that instrument.</p>
 <p class="admonition-title">Interpreting the result</p>
 <p>A period that appears in both the RVs and a chromospheric or line-shape
 indicator is stellar activity, not a planet. Note that activity signals are
-not coherent over long baselines — spots evolve — so per-instrument (roughly
+not coherent over long baselines (spots evolve), so per-instrument (roughly
 per-epoch) periodograms are often <em>more</em> sensitive to them than one
 periodogram of the pooled time series.</p>
 </div>

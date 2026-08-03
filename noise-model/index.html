@@ -595,9 +595,9 @@ with decay kernel <span class="arithmatex">\(k\)</span> and optional quasi-perio
 the kernel (otherwise <span class="arithmatex">\(q = 1\)</span>), selected with <code>qp</code>:</p>
 <ul>
 <li><code>cos</code> (default): <span class="arithmatex">\(q(\Delta t) = \tfrac12\left[1 + \cos(2\pi\Delta t / P_\mathrm{rot})\right]\)</span>
-  — a cosine bell (fundamental only).</li>
+  (a cosine bell, fundamental only).</li>
 <li><code>ess</code>: <span class="arithmatex">\(q(\Delta t) = e^{-\Gamma \sin^2(\pi \Delta t / P_\mathrm{rot})}\)</span>
-  — the standard exp-sine-squared kernel, with <span class="arithmatex">\(\Gamma = 2/\lambda^2\)</span> set by
+  (the standard exp-sine-squared kernel), with <span class="arithmatex">\(\Gamma = 2/\lambda^2\)</span> set by
   <code>qp_gamma</code> (default 8). Larger <span class="arithmatex">\(\Gamma\)</span> puts more power in the harmonics
   (<span class="arithmatex">\(P_\mathrm{rot}/2\)</span>, <span class="arithmatex">\(P_\mathrm{rot}/3\)</span>, …).</li>
 </ul>
@@ -667,7 +667,7 @@ the kernel (otherwise <span class="arithmatex">\(q = 1\)</span>), selected with 
 </ol>
 <p>then ranks models by that score and reruns the <span class="arithmatex">\(\ell_1\)</span> periodogram with the best
 one. Because the score is comparable across models (same split seed), the ranking is
-reproducible. Trust the peaks that recur across the top-ranked models — see the
+reproducible. Trust the peaks that recur across the top-ranked models; see the
 peak-stability plot in the <a href="../usage/">Guide</a>.</p>
 
 
