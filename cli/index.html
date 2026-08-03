@@ -427,6 +427,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#period-range" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Period range
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#gls" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -438,10 +449,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#l1-periodogram" class="md-nav__link">
+  <a href="#ell_1-periodogram" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ℓ₁ periodogram
+        \(\ell_1\) periodogram
       
     </span>
   </a>
@@ -449,10 +460,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#l1-cross-validation" class="md-nav__link">
+  <a href="#ell_1-cross-validation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ℓ₁ cross-validation
+        \(\ell_1\) cross-validation
       
     </span>
   </a>
@@ -475,6 +486,17 @@
     <span class="md-ellipsis">
       
         Plotting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outputs
       
     </span>
   </a>
@@ -576,6 +598,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#period-range" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Period range
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#gls" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -587,10 +620,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#l1-periodogram" class="md-nav__link">
+  <a href="#ell_1-periodogram" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ℓ₁ periodogram
+        \(\ell_1\) periodogram
       
     </span>
   </a>
@@ -598,10 +631,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#l1-cross-validation" class="md-nav__link">
+  <a href="#ell_1-cross-validation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ℓ₁ cross-validation
+        \(\ell_1\) cross-validation
       
     </span>
   </a>
@@ -624,6 +657,17 @@
     <span class="md-ellipsis">
       
         Plotting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outputs
       
     </span>
   </a>
@@ -697,6 +741,9 @@ are written to <code>--outdir</code>.</p>
 </tr>
 </tbody>
 </table>
+<p>Lines beginning with <code>#</code> are treated as comments and skipped. Rows with a
+non-finite time, velocity, or error are dropped before anything else runs, and
+the number dropped is reported.</p>
 <h2 id="filtering">Filtering<a class="headerlink" href="#filtering" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -724,6 +771,37 @@ are written to <code>--outdir</code>.</p>
 </tr>
 </tbody>
 </table>
+<p>The MAD clip keeps points with <span class="arithmatex">\(|y - \mathrm{med}| &lt; \)</span> <code>cond</code> <span class="arithmatex">\(\times\)</span> MAD/0.67,
+per instrument. An instrument whose velocities are all identical (MAD of zero) is
+left untouched rather than discarded.</p>
+<h2 id="period-range">Period range<a class="headerlink" href="#period-range" title="Permanent link">&para;</a></h2>
+<p><code>--pmin</code> and <code>--pmax</code> apply to every mode, not just the GLS.</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--pmin</code></td>
+<td>1.0</td>
+<td>minimum period (days); also sets the <span class="arithmatex">\(\ell_1\)</span> frequency-grid maximum</td>
+</tr>
+<tr>
+<td><code>--pmax</code></td>
+<td>100.0</td>
+<td>maximum period (days); trims the <span class="arithmatex">\(\ell_1\)</span> peak table and plot</td>
+</tr>
+</tbody>
+</table>
+<p>For the <span class="arithmatex">\(\ell_1\)</span> periodogram, <code>--pmin</code> bounds the dictionary through
+<span class="arithmatex">\(\omega_\mathrm{max} = 2\pi/p_\mathrm{min}\)</span>, while <code>--pmax</code> only trims the
+reported peaks and the plot: it does not bound the frequency grid, and it does
+not apply while <code>--l1_cv</code> is ranking models, only to the final rerun. Both also
+set the period range of the <code>-ai</code> activity periodograms.</p>
 <h2 id="gls">GLS<a class="headerlink" href="#gls" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -739,19 +817,9 @@ are written to <code>--outdir</code>.</p>
 <td>3</td>
 <td>prewhitening iterations</td>
 </tr>
-<tr>
-<td><code>--pmin</code></td>
-<td>1.0</td>
-<td>minimum period (days)</td>
-</tr>
-<tr>
-<td><code>--pmax</code></td>
-<td>100.0</td>
-<td>maximum period (days)</td>
-</tr>
 </tbody>
 </table>
-<h2 id="l1-periodogram">ℓ₁ periodogram<a class="headerlink" href="#l1-periodogram" title="Permanent link">&para;</a></h2>
+<h2 id="ell_1-periodogram"><span class="arithmatex">\(\ell_1\)</span> periodogram<a class="headerlink" href="#ell_1-periodogram" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
@@ -779,7 +847,7 @@ are written to <code>--outdir</code>.</p>
 <tr>
 <td><code>--l1_tau</code></td>
 <td>0.0</td>
-<td>decay timescale τ (days)</td>
+<td>decay timescale τ (days); required when σR &gt; 0</td>
 </tr>
 <tr>
 <td><code>--l1_Prot</code></td>
@@ -828,7 +896,10 @@ are written to <code>--outdir</code>.</p>
 </tr>
 </tbody>
 </table>
-<h2 id="l1-cross-validation">ℓ₁ cross-validation<a class="headerlink" href="#l1-cross-validation" title="Permanent link">&para;</a></h2>
+<p>Setting <code>--l1_sigmaR</code> without <code>--l1_tau</code> is an error: the correlated term
+degenerates to a diagonal when τ = 0, which would quietly turn the requested red
+noise into extra white jitter.</p>
+<h2 id="ell_1-cross-validation"><span class="arithmatex">\(\ell_1\)</span> cross-validation<a class="headerlink" href="#ell_1-cross-validation" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
@@ -886,10 +957,14 @@ are written to <code>--outdir</code>.</p>
 <tr>
 <td><code>--l1_cv_jobs</code></td>
 <td>4</td>
-<td>parallel workers (single-threaded BLAS each)</td>
+<td>parallel workers, each with single-threaded BLAS</td>
 </tr>
 </tbody>
 </table>
+<p><code>--l1_trend</code> and <code>--l1_unpenalized</code> apply to both the model ranking and the final
+rerun. <code>--l1_max_tests</code> and <code>--pmax</code> reach only the rerun; while ranking, the
+number of peaks tested comes from <code>l1_crossval</code>'s own default of 10 and no period
+trimming is applied. Results do not depend on <code>--l1_cv_jobs</code>.</p>
 <h2 id="activity">Activity<a class="headerlink" href="#activity" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -907,9 +982,12 @@ are written to <code>--outdir</code>.</p>
 </tr>
 </tbody>
 </table>
-<p>Uses <code>&lt;name&gt;_err</code> as uncertainties when that column exists. Best periods are
-printed per instrument; plots go to <code>activity_indicators-&lt;inst&gt;.png</code>. Indicators
-that are missing or identically zero are skipped with a note.</p>
+<p>Uses <code>&lt;name&gt;_err</code> as uncertainties when that column exists, and runs unweighted
+when it does not or when it is identically zero. Rows where the indicator is
+missing are dropped. Best periods are printed per instrument; plots go to
+<code>activity_indicators-&lt;inst&gt;.png</code>. A named column that does not exist is skipped
+with a note; an indicator that is identically zero, or has no rows left after
+dropping missing values, is skipped silently.</p>
 <h2 id="plotting">Plotting<a class="headerlink" href="#plotting" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -928,15 +1006,76 @@ that are missing or identically zero are skipped with a note.</p>
 <tr>
 <td><code>--annotate_color</code></td>
 <td><code>k</code></td>
-<td>annotation colour</td>
+<td>annotation color</td>
 </tr>
 <tr>
 <td><code>--x_offset</code></td>
 <td><code>auto</code></td>
-<td>time offset for plots (<code>auto</code> or a number)</td>
+<td>time offset for the GLS time-series plot (<code>auto</code> or a number)</td>
 </tr>
 </tbody>
 </table>
+<h2 id="outputs">Outputs<a class="headerlink" href="#outputs" title="Permanent link">&para;</a></h2>
+<p>Every run writes <code>args.txt</code> (the command line) into <code>--outdir</code>. The rest depends
+on the mode:</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Written when</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>periodogram.png</code></td>
+<td>default (GLS)</td>
+<td>the prewhitening stack, one row per iteration</td>
+</tr>
+<tr>
+<td><code>timeseries.png</code></td>
+<td>default (GLS)</td>
+<td>summed model over the data, plus residuals</td>
+</tr>
+<tr>
+<td><code>l1_periodogram.png</code></td>
+<td><code>--l1</code></td>
+<td>the <span class="arithmatex">\(\ell_1\)</span> periodogram with peaks marked</td>
+</tr>
+<tr>
+<td><code>l1_peaks.csv</code></td>
+<td><code>--l1</code></td>
+<td>peak periods, amplitudes, FAP, Bayes factors, aliases (trimmed by <code>--pmax</code>)</td>
+</tr>
+<tr>
+<td><code>l1_periodogram.npz</code></td>
+<td><code>--l1</code></td>
+<td><code>periods</code>, <code>power</code>, <code>peak_periods</code>, <code>peak_values</code> (not trimmed)</td>
+</tr>
+<tr>
+<td><code>l1_cv.csv</code></td>
+<td><code>--l1_cv</code></td>
+<td>every noise model ranked by median CV score</td>
+</tr>
+<tr>
+<td><code>l1_cv_best.json</code></td>
+<td><code>--l1_cv</code></td>
+<td>the winning model's parameters and score</td>
+</tr>
+<tr>
+<td><code>l1_cv_peaks.png</code></td>
+<td><code>--l1_cv</code></td>
+<td>peak stability across the top 20% of models</td>
+</tr>
+<tr>
+<td><code>activity_indicators-&lt;inst&gt;.png</code></td>
+<td><code>-ai</code></td>
+<td>one periodogram panel per indicator</td>
+</tr>
+</tbody>
+</table>
+<p>The <span class="arithmatex">\(\ell_1\)</span> peak table and, under <code>--l1_cv</code>, the ranked model table are also
+printed to stdout.</p>
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># GLS stack</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>freq<span class="w"> </span>rvs.csv<span class="w"> </span>-c<span class="w"> </span>bjd<span class="w"> </span>rv<span class="w"> </span>rv_err<span class="w"> </span>inst_name<span class="w"> </span>--sep<span class="w"> </span><span class="s1">&#39;,&#39;</span><span class="w"> </span>-mu<span class="w"> </span><span class="m">4</span><span class="w"> </span>-n<span class="w"> </span><span class="m">3</span><span class="w"> </span>--pmin<span class="w"> </span><span class="m">1</span><span class="w"> </span>--pmax<span class="w"> </span><span class="m">100</span><span class="w"> </span>-o<span class="w"> </span>results

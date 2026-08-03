@@ -484,6 +484,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#freq.plot.plot_l1_cv_peaks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plot_l1_cv_peaks
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -573,6 +584,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#freq.plot.plot_l1_cv_peaks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plot_l1_cv_peaks
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -654,9 +676,28 @@ k is 'gaussian' exp(-dt^2/2tau^2) or 'exponential' exp(-dt/tau), and for
 Prot &gt; 0 the quasi-periodic factor q is qp='cos' (1 + cos(2 pi dt/Prot))/2
 (upstream covar_mat) or qp='ess' exp(-qp_gamma sin^2(pi dt/Prot))
 (standard exp-sine-squared; qp_gamma = 2/lambda^2). sigmaR=0 gives
-white + jitter.
-Instrument offsets (and optional trend) are unpenalized vectors.</p>
+white + jitter; sigmaR &gt; 0 requires tau &gt; 0.</p>
+<p>Inputs need not be time-ordered. Instrument offsets are fitted as
+unpenalized vectors, so no zero-point subtraction is needed; trend=True adds
+a linear term and unpenalized_periods adds free sinusoids at known periods
+(e.g. confirmed planets), all of which are fitted without penalty.</p>
+<p>pmin sets the frequency-grid maximum (omegamax = 2 pi / pmin). pmax only
+trims the reported peaks and the plot; it does not bound the grid.</p>
 
+
+<details class="returns-a-dict-with" open>
+  <summary>Returns a dict with</summary>
+  <p>periods, power    the periodogram itself
+peak_periods,     peaks sorted by decreasing amplitude, untrimmed
+peak_values
+table             DataFrame of the peaks: period_d, amplitude,
+                  log10fap and log10_bayesf_laplace (when the matching
+                  significance method was requested), and the 1-day and
+                  1-month alias periods. Trimmed by pmax
+significance      upstream significance dict
+l1p               the underlying l1p_class instance
+fig               the figure, present only when plot=True</p>
+</details>
 
     </div>
 
@@ -679,13 +720,25 @@ compute the l1 periodogram, keep peaks with log10 FAP &lt; fap_threshold,
 and score the model (selected sinusoids + offsets, noise covariance) by
 the median held-out log-likelihood over n_sim random
 training_prop/(1-training_prop) splits. Models are ranked by median_cv.</p>
-<p>Parallelism: the grid is split over n_jobs worker processes, each with
-single-threaded BLAS (measured faster than multithreaded even at
-n_jobs=1). Each worker holds its own sine dictionary
-(~3 x Nt x Ngrid x Nphi x 8 bytes) - lower n_jobs if memory-bound.</p>
-<p>Returns dict(table=<ranked DataFrame>, best=<param dict>[, l1=<result of
-l1_periodogram rerun with the best model>]).</p>
+<p>trend and unpenalized_periods apply to every model in the grid as well as to
+the rerun, so the ranking and the final periodogram share a null model.</p>
+<p>Parallelism: with n_jobs &gt; 1 the grid is split over that many worker
+processes, each with single-threaded BLAS (measured faster than
+multithreaded for these matrix sizes); n_jobs=1 runs inline and leaves the
+BLAS environment alone. Each worker holds its own sine dictionary
+(~3 x Nt x Ngrid x Nphi x 8 bytes), so lower n_jobs if memory-bound.
+Results do not depend on n_jobs.</p>
 
+
+<details class="returns-dict-with" open>
+  <summary>Returns dict with</summary>
+  <p>table   models ranked by median_cv, one row each: the four noise
+        parameters, n_selected, selected_periods, selected_log10faps,
+        median_cv, mean_cv, loglike_all
+best    the winning model's four noise parameters
+l1      result of l1_periodogram rerun with the best model, present
+        only when rerun_best=True</p>
+</details>
 
     </div>
 
@@ -707,7 +760,7 @@ l1_periodogram rerun with the best model>]).</p>
 from it, so no arrays need to be passed separately. The upper panel shows the
 observations with the summed sinusoid model; the lower panel shows the
 residuals after subtracting it.</p>
-<p>Points are coloured by time and, when the result carries instrument labels,
+<p>Points are colored by time and, when the result carries instrument labels,
 drawn with one marker per instrument (override with markers, colors, or
 labelsdict for the legend). x_offset='auto' subtracts 2457000 and labels the
 axis 'BJD - 2457000' when the times look like full BJD, otherwise plots them
@@ -738,6 +791,24 @@ is useful for checking known planets or a rotation period against the peaks.</p>
 <p>pmax trims the plot (and the marked peaks) to periods at or below it; it
 raises ValueError if that would exclude the whole grid. Draws into ax when
 given, otherwise creates a figure. Saves to fp when given. Returns the figure.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="freq.plot.plot_l1_cv_peaks" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">freq</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">plot_l1_cv_peaks</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">perc</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fp</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#freq.plot.plot_l1_cv_peaks" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Peak stability across the top perc% of CV-ranked noise models.</p>
 
 
     </div>

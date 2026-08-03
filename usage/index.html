@@ -362,10 +362,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#l1-periodogram" class="md-nav__link">
+  <a href="#ell_1-periodogram" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ℓ₁ periodogram
+        \(\ell_1\) periodogram
       
     </span>
   </a>
@@ -521,10 +521,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#l1-periodogram" class="md-nav__link">
+  <a href="#ell_1-periodogram" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ℓ₁ periodogram
+        \(\ell_1\) periodogram
       
     </span>
   </a>
@@ -591,9 +591,9 @@ the per-iteration summary, and the figure.</p>
 <p><img alt="GLS periodogram stack" src="../assets/gls_stack.png" /></p>
 <p><code>plot_gls_timeseries</code> shows the summed model over the data and the residuals:</p>
 <p><img alt="GLS model and residuals" src="../assets/gls_timeseries.png" /></p>
-<h2 id="l1-periodogram">ℓ₁ periodogram<a class="headerlink" href="#l1-periodogram" title="Permanent link">&para;</a></h2>
+<h2 id="ell_1-periodogram"><span class="arithmatex">\(\ell_1\)</span> periodogram<a class="headerlink" href="#ell_1-periodogram" title="Permanent link">&para;</a></h2>
 <p><code>l1_periodogram</code> fits all signals simultaneously via basis pursuit under a noise
-covariance. Instrument offsets are modelled as unpenalized vectors, so no manual
+covariance. Instrument offsets are modeled as unpenalized vectors, so no manual
 zero-point subtraction is needed. See the <a href="../noise-model/">Noise model</a> for the
 covariance parameters.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">freq</span><span class="w"> </span><span class="kn">import</span> <span class="n">l1_periodogram</span>
@@ -608,12 +608,21 @@ covariance parameters.</p>
 plot shows which peaks survive across the top-ranked models: trust the ones that
 appear regardless of the assumed noise.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">freq</span><span class="w"> </span><span class="kn">import</span> <span class="n">l1_crossval</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">cv</span> <span class="o">=</span> <span class="n">l1_crossval</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">rv</span><span class="p">,</span> <span class="n">rv_err</span><span class="p">,</span> <span class="n">inst_rv</span><span class="o">=</span><span class="n">inst</span><span class="p">,</span> <span class="n">pmin</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>                 <span class="n">sigmaW</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">sigmaR</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">tau</span><span class="o">=</span><span class="p">(</span><span class="mi">41</span><span class="p">,</span> <span class="mi">82</span><span class="p">),</span> <span class="n">Prot</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">30</span><span class="p">))</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="nb">print</span><span class="p">(</span><span class="n">cv</span><span class="p">[</span><span class="s1">&#39;best&#39;</span><span class="p">])</span>                 <span class="c1"># winning (sigmaW, sigmaR, tau, Prot)</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">freq.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_l1_cv_peaks</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">cv</span> <span class="o">=</span> <span class="n">l1_crossval</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">rv</span><span class="p">,</span> <span class="n">rv_err</span><span class="p">,</span> <span class="n">inst_rv</span><span class="o">=</span><span class="n">inst</span><span class="p">,</span> <span class="n">pmin</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>                 <span class="n">sigmaW</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">sigmaR</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">tau</span><span class="o">=</span><span class="p">(</span><span class="mi">41</span><span class="p">,</span> <span class="mi">82</span><span class="p">),</span> <span class="n">Prot</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">30</span><span class="p">))</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="nb">print</span><span class="p">(</span><span class="n">cv</span><span class="p">[</span><span class="s1">&#39;best&#39;</span><span class="p">])</span>                 <span class="c1"># winning (sigmaW, sigmaR, tau, Prot)</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="nb">print</span><span class="p">(</span><span class="n">cv</span><span class="p">[</span><span class="s1">&#39;table&#39;</span><span class="p">])</span>                <span class="c1"># every model, ranked by median CV score</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="n">plot_l1_cv_peaks</span><span class="p">(</span><span class="n">cv</span><span class="p">[</span><span class="s1">&#39;table&#39;</span><span class="p">])</span>     <span class="c1"># peak stability, top 20% of models</span>
 </code></pre></div>
+<p><code>sigmaR</code> requires a matching <code>tau</code>: a correlated amplitude with <code>tau=0</code> is
+rejected rather than silently reduced to white noise. Known planet periods can
+be passed as <code>unpenalized_periods=[...]</code>, which applies to both the ranking and
+the rerun.</p>
 <p><img alt="CV peak stability" src="../assets/cv_peaks.png" /></p>
+<p>The example grid is small, so this figure shows all of its models; the default
+is the top 20%.</p>
 <h2 id="activity-indicators">Activity indicators<a class="headerlink" href="#activity-indicators" title="Permanent link">&para;</a></h2>
 <p>With <code>-ai</code>, the CLI computes a per-instrument GLS of each named activity-indicator
 column, so you can check whether a periodic RV signal also appears in a stellar
@@ -634,7 +643,7 @@ exist or is identically zero for that instrument.</p>
 <div class="admonition tip">
 <p class="admonition-title">Interpreting the result</p>
 <p>A period that appears in both the RVs and a chromospheric or line-shape
-indicator is stellar activity, not a planet. Note that activity signals are
+indicator is stellar activity, not a planet. Activity signals are
 not coherent over long baselines (spots evolve), so per-instrument (roughly
 per-epoch) periodograms are often <em>more</em> sensitive to them than one
 periodogram of the pooled time series.</p>
