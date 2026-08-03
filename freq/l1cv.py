@@ -88,13 +88,23 @@ def l1_crossval(x_rv, y_rv, yerr_rv=None, inst_rv=None, pmin=1.0,
     the median held-out log-likelihood over n_sim random
     training_prop/(1-training_prop) splits. Models are ranked by median_cv.
 
-    Parallelism: the grid is split over n_jobs worker processes, each with
-    single-threaded BLAS (measured faster than multithreaded even at
-    n_jobs=1). Each worker holds its own sine dictionary
-    (~3 x Nt x Ngrid x Nphi x 8 bytes) - lower n_jobs if memory-bound.
+    trend and unpenalized_periods apply to every model in the grid as well as to
+    the rerun, so the ranking and the final periodogram share a null model.
 
-    Returns dict(table=<ranked DataFrame>, best=<param dict>[, l1=<result of
-    l1_periodogram rerun with the best model>]).
+    Parallelism: with n_jobs > 1 the grid is split over that many worker
+    processes, each with single-threaded BLAS (measured faster than
+    multithreaded for these matrix sizes); n_jobs=1 runs inline and leaves the
+    BLAS environment alone. Each worker holds its own sine dictionary
+    (~3 x Nt x Ngrid x Nphi x 8 bytes), so lower n_jobs if memory-bound.
+    Results do not depend on n_jobs.
+
+    Returns dict with:
+        table   models ranked by median_cv, one row each: the four noise
+                parameters, n_selected, selected_periods, selected_log10faps,
+                median_cv, mean_cv, loglike_all
+        best    the winning model's four noise parameters
+        l1      result of l1_periodogram rerun with the best model, present
+                only when rerun_best=True
     """
     import pandas as pd
 

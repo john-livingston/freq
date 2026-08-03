@@ -9,3 +9,5 @@
 ::: freq.plot_gls_timeseries
 
 ::: freq.plot_l1_power
+
+::: freq.plot.plot_l1_cv_peaks

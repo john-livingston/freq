@@ -49,5 +49,6 @@ freq finds periodic signals in radial-velocity time series. The iterative GLS gi
 a fast quick-look by prewhitening one sinusoid at a time; the \(\ell_1\) periodogram
 fits all signals at once under a noise-covariance model, producing far fewer
 aliases. See the [Guide](usage.md) for the full workflow, the
-[Noise model](noise-model.md) for the covariance and cross-validation, and the
-[API reference](api.md) for the Python functions.
+[Noise model](noise-model.md) for the covariance and cross-validation, the
+[CLI reference](cli.md) for every flag, and the [API reference](api.md) for the
+Python functions.

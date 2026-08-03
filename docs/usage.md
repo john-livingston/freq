@@ -25,10 +25,10 @@ for s in res['summary']:
 
 ![GLS model and residuals](assets/gls_timeseries.png)
 
-## ℓ₁ periodogram
+## \(\ell_1\) periodogram
 
 `l1_periodogram` fits all signals simultaneously via basis pursuit under a noise
-covariance. Instrument offsets are modelled as unpenalized vectors, so no manual
+covariance. Instrument offsets are modeled as unpenalized vectors, so no manual
 zero-point subtraction is needed. See the [Noise model](noise-model.md) for the
 covariance parameters.
 
@@ -50,13 +50,24 @@ appear regardless of the assumed noise.
 
 ```python
 from freq import l1_crossval
+from freq.plot import plot_l1_cv_peaks
 
 cv = l1_crossval(t, rv, rv_err, inst_rv=inst, pmin=2,
                  sigmaW=(0.5, 1, 2), sigmaR=(0, 2, 4), tau=(41, 82), Prot=(-1, 30))
 print(cv['best'])                 # winning (sigmaW, sigmaR, tau, Prot)
+print(cv['table'])                # every model, ranked by median CV score
+plot_l1_cv_peaks(cv['table'])     # peak stability, top 20% of models
 ```
 
+`sigmaR` requires a matching `tau`: a correlated amplitude with `tau=0` is
+rejected rather than silently reduced to white noise. Known planet periods can
+be passed as `unpenalized_periods=[...]`, which applies to both the ranking and
+the rerun.
+
 ![CV peak stability](assets/cv_peaks.png)
+
+The example grid is small, so this figure shows all of its models; the default
+is the top 20%.
 
 ## Activity indicators
 
@@ -85,7 +96,7 @@ exist or is identically zero for that instrument.
 
 !!! tip "Interpreting the result"
     A period that appears in both the RVs and a chromospheric or line-shape
-    indicator is stellar activity, not a planet. Note that activity signals are
+    indicator is stellar activity, not a planet. Activity signals are
     not coherent over long baselines (spots evolve), so per-instrument (roughly
     per-epoch) periodograms are often *more* sensitive to them than one
     periodogram of the pooled time series.

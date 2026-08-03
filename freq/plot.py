@@ -117,7 +117,7 @@ def plot_gls_timeseries(res, x_offset='auto', cmap=plt.cm.RdBu_r, labelsdict=Non
     observations with the summed sinusoid model; the lower panel shows the
     residuals after subtracting it.
 
-    Points are coloured by time and, when the result carries instrument labels,
+    Points are colored by time and, when the result carries instrument labels,
     drawn with one marker per instrument (override with markers, colors, or
     labelsdict for the legend). x_offset='auto' subtracts 2457000 and labels the
     axis 'BJD - 2457000' when the times look like full BJD, otherwise plots them

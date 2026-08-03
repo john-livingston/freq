@@ -65,7 +65,8 @@ def main():
     plot_l1_cv_peaks(cv['table'], perc=100,
                      fp=os.path.join(ASSETS, 'cv_peaks.png'))
 
-    print('wrote data.png, gls_stack.png, l1_periodogram.png, cv_peaks.png to', ASSETS)
+    print('wrote data.png, gls_stack.png, gls_timeseries.png, '
+          'l1_periodogram.png, cv_peaks.png to', ASSETS)
 
 
 if __name__ == '__main__':

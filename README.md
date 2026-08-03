@@ -54,8 +54,8 @@ V = diag(rv_err²) + σW² I + σR² · k(Δt) · q(Δt)
   `--l1_qp ess` `exp(−Γ sin²(πΔt/Prot))`, the standard exp-sine-squared kernel
   (`--l1_qp_gamma` = Γ = 2/λ², default 8; larger Γ puts more power in the harmonics)
 - Flags/params: `--l1_sigmaW` (σW, jitter, m/s), `--l1_sigmaR` (σR, correlated
-  amplitude, m/s; 0 = white only), `--l1_tau` (τ, decay timescale, days),
-  `--l1_Prot` (days; −1 disables)
+  amplitude, m/s; 0 = white only), `--l1_tau` (τ, decay timescale, days;
+  required when σR > 0), `--l1_Prot` (days; −1 disables)
 
 Library equivalent: `l1_periodogram(t, rv, rv_err, inst_rv=inst, sigmaW=1,
 sigmaR=4, tau=82, Prot=30, kernel='gaussian')`.
@@ -76,7 +76,8 @@ freq rvs.csv -c bjd rv rv_err inst_name --sep ',' -o results --l1_cv \
 
 Extra outputs: `l1_cv.csv` (ranked models), `l1_cv_best.json` (winner), and
 `l1_cv_peaks.png` (peak stability across the top 20% of models). The grid is
-scored in parallel (`--l1_cv_jobs`, default 4) with single-threaded-BLAS workers.
+scored in parallel (`--l1_cv_jobs`, default 4) with single-threaded-BLAS workers;
+results do not depend on the worker count.
 
 ## Library
 

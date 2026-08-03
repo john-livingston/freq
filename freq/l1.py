@@ -99,8 +99,27 @@ def l1_periodogram(x_rv, y_rv, yerr_rv=None, inst_rv=None, pmin=1.0, pmax=None,
     Prot > 0 the quasi-periodic factor q is qp='cos' (1 + cos(2 pi dt/Prot))/2
     (upstream covar_mat) or qp='ess' exp(-qp_gamma sin^2(pi dt/Prot))
     (standard exp-sine-squared; qp_gamma = 2/lambda^2). sigmaR=0 gives
-    white + jitter.
-    Instrument offsets (and optional trend) are unpenalized vectors.
+    white + jitter; sigmaR > 0 requires tau > 0.
+
+    Inputs need not be time-ordered. Instrument offsets are fitted as
+    unpenalized vectors, so no zero-point subtraction is needed; trend=True adds
+    a linear term and unpenalized_periods adds free sinusoids at known periods
+    (e.g. confirmed planets), all of which are fitted without penalty.
+
+    pmin sets the frequency-grid maximum (omegamax = 2 pi / pmin). pmax only
+    trims the reported peaks and the plot; it does not bound the grid.
+
+    Returns a dict with:
+        periods, power    the periodogram itself
+        peak_periods,     peaks sorted by decreasing amplitude, untrimmed
+        peak_values
+        table             DataFrame of the peaks: period_d, amplitude,
+                          log10fap and log10_bayesf_laplace (when the matching
+                          significance method was requested), and the 1-day and
+                          1-month alias periods. Trimmed by pmax
+        significance      upstream significance dict
+        l1p               the underlying l1p_class instance
+        fig               the figure, present only when plot=True
     """
     import pandas as pd
     from .l1p import l1periodogram_v1
