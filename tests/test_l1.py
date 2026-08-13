@@ -161,3 +161,55 @@ def test_unsorted_times_give_same_result_as_sorted(synth_rv):
     assert np.allclose(ref['periods'], shuf['periods'])
     assert np.allclose(ref['power'], shuf['power'])
     assert abs(shuf['peak_periods'][0] - P1) < 0.1
+
+
+def test_kernels_and_qp_build_distinct_covariances(synth_rv):
+    """gaussian vs exponential vs ess, and ess gamma, must change V.
+
+    Catches: a kernel/qp branch that returns the white-noise diagonal, or
+    qp_gamma being ignored, which a recover-P1 smoke test cannot see.
+    """
+    from freq.l1 import _build_V
+    t, _, yerr, _ = synth_rv
+    kw = dict(t=t, yerr=yerr, sigmaW=1.0, sigmaR=4.0, tau=10.0, Prot=30.0)
+    vg = _build_V(**kw, kernel='gaussian', qp='cos')
+    ve = _build_V(**kw, kernel='exponential', qp='cos')
+    vess = _build_V(**kw, kernel='gaussian', qp='ess', qp_gamma=8.0)
+    vess_lo = _build_V(**kw, kernel='gaussian', qp='ess', qp_gamma=1.0)
+    ve_ess = _build_V(**kw, kernel='exponential', qp='ess', qp_gamma=8.0)
+    assert not np.allclose(vg, ve)
+    assert not np.allclose(vg, vess)
+    assert not np.allclose(vess, vess_lo)
+    assert not np.allclose(vess, ve_ess)
+    off = vg - np.diag(np.diag(vg))
+    assert np.max(np.abs(off)) > 0
+
+
+def test_pmax_trims_table_not_peak_periods(synth_rv):
+    """pmax filters the reported table; peak_periods stay untrimmed.
+
+    Catches: pmax being applied to the frequency grid, or trimming
+    peak_periods in place so the long signal disappears from the result dict.
+    """
+    t, y, yerr, (P1, P2) = synth_rv
+    res = l1_periodogram(t, y, yerr, pmin=2.0, pmax=10.0, sigmaW=1.0,
+                         significance_methods=(), plot=False)
+    assert (res['table'].period_d <= 10.0).all()
+    assert abs(res['table'].period_d.iloc[0] - P1) < 0.1
+    assert any(abs(p - P2) < 0.5 for p in res['peak_periods'])
+
+
+def test_mh0_one_column_per_instrument_plus_trend():
+    """Two instruments plus trend=True give three unpenalized columns.
+
+    Catches: inst_rv being ignored when trend is set, so both instruments
+    share one offset column (or the trend column replacing them).
+    """
+    from freq.l1 import _build_MH0
+    t = np.linspace(0, 100, 40)
+    inst = np.array(['a'] * 20 + ['b'] * 20)
+    mh0 = _build_MH0(t, inst, trend=True)
+    assert mh0.shape == (40, 3)
+    assert np.allclose(mh0[:20, 0], 1) and np.allclose(mh0[20:, 0], 0)
+    assert np.allclose(mh0[:20, 1], 0) and np.allclose(mh0[20:, 1], 1)
+    assert not np.allclose(mh0[:, 2], 0)

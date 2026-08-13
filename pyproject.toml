@@ -15,7 +15,7 @@ Homepage = "https://github.com/john-livingston/freq"
 Documentation = "https://john-livingston.github.io/freq"
 
 [project.optional-dependencies]
-test = ["pytest"]
+test = ["pytest", "pytest-cov"]
 docs = ["mkdocs-material", "mkdocstrings[python]"]
 
 [project.scripts]
@@ -26,3 +26,13 @@ include = ["freq*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["freq"]
+omit = ["freq/gls.py", "freq/l1p/*"]
+
+[tool.coverage.report]
+fail_under = 95
+show_missing = true
+skip_empty = true
+exclude_lines = ["if __name__ == .__main__.:"]

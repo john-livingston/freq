@@ -71,3 +71,30 @@ def test_list_inputs_accepted_like_arrays():
                         pmin=2, pmax=50, plot=False)
     assert abs(arr['summary'][0]['P'] - P) < 0.1
     assert abs(lst['summary'][0]['P'] - P) < 0.1
+
+
+def test_n3_recovers_two_signals(synth_rv):
+    """n=3 still recovers both injected periods in the first two iterations.
+
+    Catches: the prewhitening loop running once regardless of n, or n>2
+    corrupting the residual so the second period is lost.
+    """
+    t, y, yerr, (P1, P2) = synth_rv
+    res = iterative_gls(t, y, yerr, n=3, pmin=1.0, pmax=100.0, plot=False)
+    assert len(res['summary']) == 3
+    found = sorted(s['P'] for s in res['summary'][:2])
+    assert abs(found[0] - P1) < 0.05
+    assert abs(found[1] - P2) < 0.5
+
+
+def test_n2_plot_hides_intermediate_xlabels(synth_rv):
+    """With n>1 and plot=True, only the last row keeps x tick labels.
+
+    Catches: the i < n-1 xlabel-clearing branches being dropped, so
+    intermediate periodogram/folded panels repeat the axis label.
+    """
+    t, y, yerr, _ = synth_rv
+    res = iterative_gls(t, y, yerr, n=2, pmin=1.0, pmax=100.0, plot=True)
+    axes = res['fig'].axes
+    assert [ax.get_xlabel() for ax in axes] == [
+        '', '', 'Period [days]', 'Phase']

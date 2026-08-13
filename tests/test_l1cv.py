@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 
 import pytest
@@ -27,8 +29,9 @@ def test_crossval_ranks_and_reruns_best(synth_rv):
     assert abs(res['l1']['peak_periods'][0] - P1) < 0.1
 
 
-def test_parallel_matches_serial(synth_rv):
+def test_parallel_matches_serial(synth_rv, monkeypatch):
     t, y, yerr, _ = synth_rv
+    monkeypatch.setenv('OMP_NUM_THREADS', '8')
     kw = dict(pmin=2.0, sigmaW=(1.0,), sigmaR=(0.0, 2.0), tau=(10.0,),
               Prot=(-1.0,), n_sim=30, seed=2, max_significance_tests=5,
               rerun_best=False)
@@ -38,6 +41,7 @@ def test_parallel_matches_serial(synth_rv):
     t1 = r1['table'].sort_values(key).reset_index(drop=True)
     t2 = r2['table'].sort_values(key).reset_index(drop=True)
     assert np.allclose(t1.median_cv, t2.median_cv)
+    assert os.environ.get('OMP_NUM_THREADS') == '8'
 
 
 def test_cv_results_independent_of_worker_count(synth_rv):

@@ -28,6 +28,18 @@ def test_x_offset_auto_bjd(synth_rv):
     assert fig.axes[-1].get_xlabel() == 'BJD $-$ 2457000'
 
 
+def test_x_offset_numeric_label(synth_rv):
+    """A numeric x_offset is subtracted and named on the axis.
+
+    Catches: numeric --x_offset being ignored, so the label stays
+    Time [days] and the plotted times are unshifted.
+    """
+    t, y, yerr, _ = synth_rv
+    res = iterative_gls(t, y, yerr, n=1, plot=False)
+    fig = plot_gls_timeseries(res, x_offset=100)
+    assert fig.axes[-1].get_xlabel() == 'BJD $-$ 100'
+
+
 def test_timeseries_yerr_none(synth_rv):
     t, y, _, _ = synth_rv
     res = iterative_gls(t, y, None, n=1, plot=False)
